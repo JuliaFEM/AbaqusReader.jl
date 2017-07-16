@@ -5,8 +5,6 @@ using AbaqusReader
 using Base.Test
 
 @testset "AbaqusReader.jl" begin
-    #include("test_parser.jl")
-    #include("test_parser_2.jl")
-    # TODO: fix tests
-    @test 1 == 1
+    include("test_parser.jl")
+    include("test_parser_2.jl")
 end
