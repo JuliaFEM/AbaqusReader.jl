@@ -4,7 +4,6 @@
 using Documenter
 using AbaqusReader
 
-makedocs(
-    modules = [AbaqusReader],
-    checkdocs = :all,
-    strict = true)
+deploydocs(
+    deps = Deps.pip("mkdocs", "python-markdown-math"),
+    repo = "github.com/JuliaFEM/AbaqusReader.jl.git")
