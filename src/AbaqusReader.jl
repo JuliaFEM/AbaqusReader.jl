@@ -6,6 +6,6 @@ module AbaqusReader
 using Logging
 
 include("parse_mesh.jl")
-include("parse_model.jl")
+#include("parse_model.jl")
 
 end
