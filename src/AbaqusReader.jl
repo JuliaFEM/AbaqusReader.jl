@@ -3,6 +3,8 @@
 
 module AbaqusReader
 
+using Logging
+
 include("parser.jl")
 
 end
