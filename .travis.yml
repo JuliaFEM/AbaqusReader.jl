@@ -4,7 +4,6 @@ os:
 julia:
     - release
     - nightly
-    - 0.5.2
 before_script:
     - julia --color=yes -e 'Pkg.clone(pwd())'
     - julia --color=yes -e 'Pkg.add("Coverage")'
