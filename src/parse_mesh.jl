@@ -55,7 +55,7 @@ function parse_section(model, lines, key::Symbol, idx_start,
     if has_set_def != nothing
       set_name = has_set_def[1]
       info("Creating node set $set_name")
-      model["nsets"][set_name] = ids
+      model["node_sets"][set_name] = ids
   end
 end
 
@@ -110,8 +110,8 @@ function parse_section(model, lines, key, idx_start, idx_end, ::Type{Val{:ELEMEN
                 numbers = map(x-> parse(Int, x), arr_num_as_str)
                 push!(connectivity, numbers...)
             end
-            model["elements"][id] = Dict(("type"=>element_type),
-                                ("connectivity"=>connectivity))
+            model["elements"][id] = connectivity
+            model["element_types"][id] = element_type
         end
         line = consume(list_iterator)
     end
@@ -119,7 +119,7 @@ function parse_section(model, lines, key, idx_start, idx_end, ::Type{Val{:ELEMEN
     if has_set_def != nothing
       set_name = has_set_def[1]
       info("Creating elset $set_name")
-      model["elsets"][set_name] = ids
+      model["element_sets"][set_name] = ids
   end
 end
 
@@ -157,7 +157,7 @@ function parse_section(model, lines, key, idx_start, idx_end, ::Union{Type{Val{:
             end
         end
     end
-    selected_set = key == :NSET ? "nsets" : "elsets"
+    selected_set = key == :NSET ? "node_sets" : "element_sets"
     model[selected_set][set_name] = data
 end 
 
@@ -172,8 +172,8 @@ function parse_section(model, lines, key, idx_start, idx_end, ::Type{Val{:SURFAC
     has_set_def = Dict(map(y -> lowercase(strip(y[1])) => strip(y[2]), map(x -> split(x, "="), matchall(r"([\w\_\-]+[ ]*=[ ]*[\w\_\-]+)", definition)))) 
     has_set_def != nothing || return
     debug(has_set_def)
-    set_type = Symbol(get(has_set_def, "type", "UNKNOWN"))
-    set_name = Symbol(has_set_def["name"])
+    set_type = get(has_set_def, "type", "UNKNOWN")
+    set_name = has_set_def["name"]
     data = Vector{Tuple{Int64, Symbol}}()
     for line in lines[idx_start + 1: idx_end]
         empty_or_comment_line(line) && continue
@@ -187,7 +187,7 @@ function parse_section(model, lines, key, idx_start, idx_end, ::Type{Val{:SURFAC
         push!(data, (element_id, element_side))
     end
     model["surface_types"][set_name] = set_type
-    model["surfaces"][set_name] = data
+    model["surface_sets"][set_name] = data
     return
 end
 
@@ -217,13 +217,14 @@ function parse_abaqus(fid::IOStream)
     idx_start = keyword_indexes[1]
     keyword_sym::Symbol = :none
     parser::Function = x->()
-    model = Dict{AbstractString, Any}()
+    model = Dict{String, Dict}()
     model["nodes"] = Dict{Int64, Vector{Float64}}()
-    model["nsets"] = Dict{AbstractString, Vector{Int64}}()
-    model["elsets"] = Dict{AbstractString, Vector{Int64}}()
-    model["elements"] = Dict{Integer, Any}()
-    model["surfaces"] = Dict{Symbol, Vector{Tuple{Int64, Symbol}}}()
-    model["surface_types"] = Dict{Symbol, Symbol}()
+    model["node_sets"] = Dict{String, Vector{Int64}}()
+    model["elements"] = Dict{Integer, Vector{Integer}}()
+    model["element_types"] = Dict{Integer, Symbol}()
+    model["element_sets"] = Dict{String, Vector{Int64}}()
+    model["surface_sets"] = Dict{String, Vector{Tuple{Int64, Symbol}}}()
+    model["surface_types"] = Dict{String, Symbol}()
     for idx_end in keyword_indexes[2:end]
         keyword_line = strip(uppercase(lines[idx_start]))
         keyword = strip(regex_match(r"\s*([\w ]+)", keyword_line, 1))
@@ -240,25 +241,3 @@ function parse_abaqus(fid::IOStream)
     end
     return model
 end
-
-function abaqus_read_mesh(fn)
-    model = open(parse_abaqus, fn)
-    mesh = Mesh()
-    mesh.nodes = model["nodes"]
-    for (nset_name, node_ids) in model["nsets"]
-        mesh.node_sets[Symbol(nset_name)] = Set(node_ids)
-    end
-    for (elid, eldata) in model["elements"]
-        eltype = eldata["type"]
-        elcon = eldata["connectivity"]
-        mesh.elements[elid] = elcon
-        mesh.element_types[elid] = eltype
-    end
-    for (elset_name, element_ids) in model["elsets"]
-        mesh.element_sets[Symbol(elset_name)] = Set(element_ids)
-    end
-    mesh.surface_sets = model["surfaces"]
-    mesh.surface_types = model["surface_types"]
-    return mesh
-end
-
