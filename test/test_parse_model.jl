@@ -3,10 +3,12 @@
 
 using Base.Test
 
-#=
+using AbaqusReader: abaqus_read_model
+
+datadir = first(splitext(basename(@__FILE__)))
 
 @testset "parse abaqus inp file to AbaqusModel" begin
-    fn = Pkg.dir("JuliaFEM") * "/test/testdata/cube_tet4.inp"
+    fn = joinpath(datadir, "cube_tet4.inp")
     model = abaqus_read_model(fn)
 
     @test length(model.properties) == 1
@@ -30,5 +32,3 @@ using Base.Test
     load = step.boundary_conditions[2]
     @test load.data[1] == [:LOAD, :P, 1.00000]
 end
-
-=#
