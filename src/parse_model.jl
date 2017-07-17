@@ -1,20 +1,32 @@
 # This file is a part of JuliaFEM.
-# License is MIT: see https://github.com/JuliaFEM/JuliaFEM.jl/blob/master/LICENSE.md
+# License is MIT: see https://github.com/JuliaFEM/AbaqusReader.jl/blob/master/LICENSE.md
 
 import Base: getindex, length
 
-using JuliaFEM
-using JuliaFEM.Preprocess
-using JuliaFEM.Postprocess
-
 ### Model definitions for ABAQUS data model
 
-abstract AbstractMaterial
-abstract AbstractMaterialProperty
-abstract AbstractProperty
-abstract AbstractStep
-abstract AbstractBoundaryCondition
-abstract AbstractOutputRequest
+abstract type AbstractMaterial end
+abstract type AbstractMaterialProperty end
+abstract type AbstractProperty end
+abstract type AbstractStep end
+abstract type AbstractBoundaryCondition end
+abstract type AbstractOutputRequest end
+
+type Mesh
+    nodes :: Dict{Int, Vector{Float64}}
+    node_sets :: Dict{String, Vector{Integer}}
+    elements :: Dict{Int, Vector{Int}}
+    element_types :: Dict{Int, Symbol}
+    element_sets :: Dict{String, Vector{Integer}}
+    surface_sets :: Dict{String, Vector{Tuple{Int, Symbol}}}
+    surface_types :: Dict{String, Symbol}
+end
+
+function Mesh(d::Dict{String, Dict})
+    return Mesh(d["nodes"], d["node_sets"], d["elements"],
+                d["element_types"], d["element_sets"],
+                d["surface_sets"], d["surface_types"])
+end
 
 type Model
     path :: AbstractString
@@ -24,7 +36,6 @@ type Model
     properties :: Vector{AbstractProperty}
     boundary_conditions :: Vector{AbstractBoundaryCondition}
     steps :: Vector{AbstractStep}
-    problems :: Vector{Problem}
 end
 
 type SolidSection <: AbstractProperty
@@ -211,15 +222,13 @@ function process_line!(model, state, line; verbose=false)
     push!(state.data, line)
 end
 
-function abaqus_read_model(fn; read_mesh=true)
+function abaqus_read_model(fn::String)
 
     model_path = dirname(fn)
     model_name = first(splitext(basename(fn)))
-    model = Model(model_path, model_name, Mesh(), Dict(), [], [], [], [])
-
-    if read_mesh
-        model.mesh = abaqus_read_mesh(fn)
-    end
+    mesh = Mesh(open(parse_abaqus, fn))
+    materials = Dict()
+    model = Model(model_path, model_name, mesh, materials, [], [], [])
 
     state = AbaqusReaderState(nothing, nothing, nothing, nothing, [])
 
@@ -261,12 +270,12 @@ end
 @register_abaqus_keyword("CLOAD")
 @register_abaqus_keyword("DLOAD")
 @register_abaqus_keyword("DSLOAD")
-typealias BOUNDARY_CONDITIONS Union{BOUNDARY, CLOAD, DLOAD, DSLOAD}
+const BOUNDARY_CONDITIONS = Union{BOUNDARY, CLOAD, DLOAD, DSLOAD}
 
 @register_abaqus_keyword("NODE PRINT")
 @register_abaqus_keyword("EL PRINT")
 @register_abaqus_keyword("SECTION PRINT")
-typealias OUTPUT_REQUESTS Union{NODE_PRINT, EL_PRINT, SECTION_PRINT}
+const OUTPUT_REQUESTS = Union{NODE_PRINT, EL_PRINT, SECTION_PRINT}
 
 ## Properties
 
@@ -346,420 +355,3 @@ function close_section!(model, state, ::OUTPUT_REQUESTS)
     step = get(state.step)
     push!(step.output_requests, request)
 end
-
-
-### Code to use JuliaFEM to run ABAQUS data model
-
-function determine_problem_type(model::Model)
-    # FIXME
-    return Elasticity
-end
-
-function determine_problem_dimension(model::Model)
-    # FIXME
-    return 3
-end
-
-function get_element_section(model::Model, element_set_name::Symbol)
-    sections = filter(s -> s.element_set == element_set_name, model.properties)
-    length(sections) == 1 || error("Multiple sections found for element set $element_set_name")
-    return sections[1]
-end
-
-function get_material(model::Model, material_name)
-    return model.materials[material_name]
-end
-
-function create_problem(model::Model, element_set_name::Symbol; verbose=true)
-    problem_type = determine_problem_type(model)
-    problem_name = "$problem_type $element_set_name"
-    problem_dimension = determine_problem_dimension(model)
-    problem = Problem(problem_type, problem_name, problem_dimension)
-    problem.elements = create_elements(model.mesh, element_set_name)
-    section = get_element_section(model, element_set_name)
-    material = get_material(model, section.material_name)
-    for mp in material.properties
-        if isa(mp, Elastic)
-            verbose && info("$element_set_name: elastic material, E = $(mp.E), nu = $(mp.nu)")
-            update!(problem.elements, "youngs modulus", mp.E)
-            update!(problem.elements, "poissons ratio", mp.nu)
-        end
-    end
-    return problem
-end
-
-""" Dirichlet boundary condition. """
-function create_boundary_problem(model::Model, bc::AbstractBoundaryCondition, ::BOUNDARY; verbose=true)
-    dim = determine_problem_dimension(model)
-    problem = Problem(Dirichlet, "Dirichlet boundary *BOUNDARY", dim, "displacement")
-    for row in bc.data
-
-        if isa(row[1], AbstractString) # node set given
-            nodes = model.mesh.node_sets[bc_name]
-        else # single node given
-            nodes = [row[1]]
-        end
-
-        elements = [Element(Poi1, [id]) for id in nodes]
-        update!(elements, "geometry", model.mesh.nodes)
-
-        for dof in row[2]:row[end]
-            # FIXME
-            val = 0.0
-            update!(elements, "displacement $dof", val)
-            verbose && info("Nodes ", join(nodes, ", "), " dof $dof => $val")
-        end
-
-        push!(problem, elements)
-    end
-    return problem
-end
-
-""" Distributed surface load (DSLOAD). """
-function create_boundary_problem(model::Model, bc::AbstractBoundaryCondition, ::DSLOAD; verbose=false)
-    dim = determine_problem_dimension(model)
-    problem = Problem(Elasticity, "Distributed surface load *DSLOAD", dim)
-    for row in bc.data
-        bc_name, bc_type, pressure = row
-        bc_type == :P || error("bc_type = $bc_type != :P")
-        elements = []
-        for (parent_element_id, parent_element_side) in model.mesh.surface_sets[bc_name]
-            parent_element_type = model.mesh.element_types[parent_element_id]
-            parent_element_connectivity = model.mesh.elements[parent_element_id]
-
-            child_element_type, child_element_lconn, child_element_connectivity = 
-                get_child_element(parent_element_type, parent_element_side,
-                parent_element_connectivity)
-
-            verbose && info("parent element : $parent_element_id, $parent_element_type, $parent_element_connectivity, $parent_element_side")
-            verbose && info("child element  : $child_element_type, $child_element_connectivity")
-
-            child_element = Element(JuliaFEM.(child_element_type), child_element_connectivity)
-            push!(elements, child_element)
-        end
-        update!(elements, "geometry", model.mesh.nodes)
-        update!(elements, "surface pressure", pressure)
-        push!(problem, elements)
-    end
-    return problem
-end
-
-""" Distributed load (DLOAD). """
-function create_boundary_problem(model::Model, bc::AbstractBoundaryCondition, ::DLOAD; verbose=false)
-    dim = determine_problem_dimension(model)
-    problem = Problem(Elasticity, "Distributed load *DLOAD", dim)
-    for row in bc.data
-        parent_element_id, parent_element_side, pressure = row
-        parent_element_type = model.mesh.element_types[parent_element_id]
-        parent_element_connectivity = model.mesh.elements[parent_element_id]
-
-        child_element_type, child_element_lconn, child_element_connectivity = 
-            get_child_element(parent_element_type, parent_element_side,
-            parent_element_connectivity)
-
-        verbose && info("parent element : $parent_element_id, $parent_element_type, $parent_element_connectivity, $parent_element_side")
-        verbose && info("child element  : $child_element_type, $child_element_connectivity")
-
-        child_element = Element(getfield(JuliaFEM, child_element_type), child_element_connectivity)
-        update!(child_element, "geometry", model.mesh.nodes)
-        update!(child_element, "surface pressure", -pressure)
-        push!(problem.elements, child_element)
-    end
-    return problem
-end
-
-""" Concentrated load (CLOAD). """
-function create_boundary_problem(model::Model, bc::AbstractBoundaryCondition, ::CLOAD; verbose=false)
-    dim = determine_problem_dimension(model)
-    problem = Problem(Elasticity, "Concentrated load *CLOAD", dim)
-    nodes = sort(unique([row[1] for row in bc.data]))
-    elements = Dict()
-    for node in nodes
-        element = Element(Poi1, [node])
-        update!(element, "geometry", model.mesh.nodes)
-        elements[node] = element
-    end
-    for row in bc.data
-        node, dof, load = row
-        update!(elements[node], "concentrated force $dof", load)
-    end
-    problem.elements = collect(values(elements))
-    return problem
-end
-
-function create_boundary_problem(model::Model, bc::AbstractBoundaryCondition)
-    create_boundary_problem(model, bc, Val{bc.kind})
-end
-
-""" Given element code, element side and global connectivity, determine boundary
-element. E.g. for Tet4 we have 4 sides S1..S4 and boundary element is of type Tri3.
-"""
-function get_child_element(element_type::Symbol, element_side::Symbol,
-                           element_connectivity::Vector{Int64})
-
-    element_mapping = Dict(
-        :Tet4 => Dict(
-            :S1 => (:Tri3, [1, 3, 2]),
-            :S2 => (:Tri3, [1, 2, 4]),
-            :S3 => (:Tri3, [2, 3, 4]),
-            :S4 => (:Tri3, [1, 4, 3])),
-        :Tet10 => Dict(
-            :S1 => (:Tri6, [1, 3, 2, 7, 6, 5]),
-            :S2 => (:Tri6, [1, 2, 4, 5, 9, 8]),
-            :S3 => (:Tri6, [2, 3, 4, 6, 10, 9]),
-            :S4 => (:Tri6, [1, 4, 3, 8, 10, 7])),
-        :Hex8 => Dict(
-            :P1 => (:Quad4, [1, 2, 3, 4]),
-            :P2 => (:Quad4, [5, 8, 7, 6]),
-            :P3 => (:Quad4, [1, 5, 6, 2]),
-            :P4 => (:Quad4, [2, 6, 7, 3]),
-            :P5 => (:Quad4, [3, 7, 8, 4]),
-            :P6 => (:Quad4, [4, 8, 5, 1]))
-        )
-
-        if !haskey(element_mapping, element_type)
-            error("Unable to find child element for element of type $element_type for side $element_side, check mapping.")
-        end
-
-        if !haskey(element_mapping[element_type], element_side)
-            error("Unable to find child element side mapping for element of type $element_type for side $element_side, check mapping.")
-        end
-
-        child_element, child_element_lconn = element_mapping[element_type][element_side]
-        child_element_gconn = element_connectivity[child_element_lconn]
-        return child_element, child_element_lconn, child_element_gconn
-    end
-
-    function determine_solver_type(model::Model, step::AbstractStep)
-        # FIXME
-        return Linear
-    end
-
-    function process_output_request(model::Model, solver::Solver, output_request::AbstractOutputRequest)
-        kind = Val{output_request.kind}
-        target = Val{output_request.target}
-    process_output_request(model, solver, output_request, kind, target)
-end
-
-function process_output_request(model::Model, solver::Solver, output_request::AbstractOutputRequest,
-                                ::Type{Val{:NODE}}, ::Type{Val{:PRINT}})
-    data = output_request.data
-    options = output_request.options
-    code_mapping = Dict(
-        :COORD => "geometry",
-        :U => "displacement",
-        :CF => "concentrated force",
-        :RF => "reaction force")
-    abbr_mapping = Dict(:COORD => :COOR)
-    for row in data
-        info(repeat("-", 80))
-        codes = join(row, ", ")
-        info("*NODE PRINT request, with fields $codes")
-        if length(options) != 0
-            info("Additional options: $options")
-        end
-        info(repeat("-", 80))
-        tables = Any[]
-        for code in row
-            haskey(code_mapping, code) || continue
-            field_name = code_mapping[code]
-            abbr = get(abbr_mapping, code, code)
-            #table = solver(DataFrame, field_name, abbr, solver.time)
-            #push!(tables, table)
-        end
-        length(tables) != 0 || continue
-        results = join(tables..., on=:NODE, kind=:outer)
-        sort!(results, cols=[:NODE])
-        println()
-        println(results)
-        println()
-    end
-end
-
-function process_output_request(model::Model, solver::Solver, output_request::AbstractOutputRequest,
-                                ::Type{Val{:EL}}, ::Type{Val{:PRINT}})
-    data = output_request.data
-    options = output_request.options
-    code_mapping = Dict(
-        :COORD => "geometry",
-        :S => "stress",
-        :E => "strain")
-    abbr_mapping = Dict(:COORD => :COOR)
-    for row in data
-        info(repeat("-", 80))
-        codes = join(row, ", ")
-        info("*EL PRINT request, with fields $codes")
-        if length(options) != 0
-            info("Additional options: $options")
-        end
-        info(repeat("-", 80))
-        #= to be fixed
-        tables = Any[]
-        for code in row
-            haskey(code_mapping, code) || continue
-            field_name = code_mapping[code]
-            abbr = get(abbr_mapping, code, code)
-            table = solver(DataFrame, solver.time, Val{code})
-            push!(tables, table)
-        end
-        length(tables) != 0 || continue
-        results = first(tables)
-        if length(tables) > 1
-            for i=2:length(tables)
-                results = join(results, tables[i], on=:ELEMENT, kind=:outer)
-            end
-        end
-        #sort!(results; cols=[:ELEMENT, :IP])
-        # filter out elements with id -1, they are automatically created boundary elements
-        fel = find(results[:ELEMENT] .!= Symbol("E-1"))
-        results = results[fel, :]
-        println()
-        println(results)
-        println()
-        =#
-    end
-end
-
-function process_output_request(model::Model, solver::Solver, output_request::AbstractOutputRequest,
-                                ::Type{Val{:SECTION}}, ::Type{Val{:PRINT}})
-    data = output_request.data
-    options = output_request.options
-    info("SECTION PRINT output request, with data $data and options $options")
-end
-
-function (model::Model)()
-    info("Starting JuliaFEM-ABAQUS solver.")
-
-    # 1. create field problems and add elements
-    element_sets = collect(keys(model.mesh.element_sets))
-    info("Creating problems for element sets ", join(element_sets, ", "))
-    model.problems = [create_problem(model, elset) for elset in element_sets]
-
-    # 2. create boundary problems (the ones defined before *STEP)
-    info("Boundary conditions defined before *STEP")
-    for (i, bc) in enumerate(model.boundary_conditions)
-        info("$i $(bc.kind)")
-    end
-    boundary_problems = [create_boundary_problem(model, bc) for bc in model.boundary_conditions]
-
-    # 3. loop steps
-    for step in model.steps
-        # 3.1 add boundary conditions defined inside *STEP
-        step_problems = [create_boundary_problem(model, bc) for bc in step.boundary_conditions]
-        # 3.2 create solver and solve set of problems
-        solver_type = determine_solver_type(model, step)
-        solver_description = "$solver_type solver"
-        solver = Solver(solver_type, solver_description)
-        all_problems = [model.problems; boundary_problems; step_problems]
-        push!(solver, all_problems...)
-        solver()
-        info(repeat("-", 80))
-        info("Simulation ready, processing output requests")
-        info(repeat("-", 80))
-        # 3.3 postprocessing based on output requests
-        for output_request in step.output_requests
-            process_output_request(model, solver, output_request)
-        end
-    end
-
-    return 0
-end
-
-function abaqus_download(name)
-    fn = "$name.inp"
-    if !haskey(ENV, "ABAQUS_DOWNLOAD_URL")
-        info("""
-        ABAQUS input file $fn not found and ABAQUS_DOWNLOAD_URL not set, unable to
-        download file. To enable automatic model downloading, set environment variable
-        ABAQUS_URL to point url to models.""")
-        return 1
-    end
-    url = ENV["ABAQUS_DOWNLOAD_URL"]
-    if haskey(ENV, "ABAQUS_DOWNLOAD_DIR")
-        fn = rstrip(ENV["ABAQUS_DOWNLOAD_DIR"], '/') * "/" * fn
-    end
-    if !isfile(fn)
-        info("Downloading model $name ...")
-        download("$url/$name.inp", fn)
-    end
-    return 0
-end
-
-""" Return input file name. """
-function abaqus_input_file_name(name)
-    fn = "$name.inp"
-    isfile(fn) && return fn
-    if haskey(ENV, "ABAQUS_DOWNLOAD_DIR")
-        fn = rstrip(ENV["ABAQUS_DOWNLOAD_DIR"], '/') * "/" * fn
-    end
-    isfile(fn) && return fn
-    return ""
-end
-
-function abaqus_input_file_path(name)
-    return dirname(abaqus_input_file_name(name))
-end
-
-function abaqus_open_results(name)
-    path = abaqus_input_file_path(name)
-    result_file = "$path/$name.xmf"
-    return Xdmf(result_file)
-end
-
-### JuliaFEM-ABAQUS interface entry point
-
-"""
-Run ABAQUS model. If input file is not found, attempt to fetch it from internet
-if fetch is set to true and ABAQUS_DOWNLOAD_URL is set. Return exit code 0 if
-execution of model is success.
-"""
-function abaqus_run_model(name; fetch=false, verbose=false)
-
-    if !isfile("$name.inp") && fetch
-        status = abaqus_download(name)
-        status == 0 || return status # download failed
-    end
-
-    fn = abaqus_input_file_name(name)
-
-    if verbose
-        println(repeat("-", 80))
-        println("Running ABAQUS model $name from file $fn")
-        println(repeat("-", 80))
-        println(readstring(fn))
-        println(repeat("-", 80))
-    end
-
-    model = abaqus_read_model(fn)
-    status = model()
-    return status
-end
-
-
-""" 
-This function gerates surface elements from solid elements
-
-slave = create_surface_elements(mesh, :slave_surf) 
-master = create_surface_elements(mesh, :master_surf) 
-"""
-function create_surface_elements(mesh::Mesh, surface_name::Symbol)
-   elements = []
-   for (parent_element_id, parent_element_side) in mesh.surface_sets[surface_name]
-       parent_element_type = mesh.element_types[parent_element_id]
-       parent_element_connectivity = mesh.elements[parent_element_id]
-
-       child_element_type, child_element_lconn, child_element_connectivity =
-           get_child_element(parent_element_type, parent_element_side,
-           parent_element_connectivity)
-
-       child_element = Element(getfield(JuliaFEM, child_element_type), child_element_connectivity)
-       push!(elements, child_element)
-   end
-   update!(elements, "geometry", mesh.nodes)
-   return elements
-end
-
-function create_surface_elements(mesh::Mesh, surface_name::String)
-    return create_surface_elements(mesh, Symbol(surface_name))
-end
-
