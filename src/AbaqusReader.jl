@@ -7,5 +7,6 @@ using Logging
 
 include("parse_mesh.jl")
 #include("parse_model.jl")
+include("create_surface_elements.jl")
 
 end

@@ -4,7 +4,7 @@
 using Base.Test
 
 using AbaqusReader: element_has_type, element_has_nodes, parse_abaqus,
-                    parse_section#, create_surface_elements
+                    parse_section
 
 datadir = first(splitext(basename(@__FILE__)))
 
@@ -55,9 +55,6 @@ end
     @test mesh["surface_sets"]["LOAD"][1] == (16, :S1)
     @test mesh["surface_types"]["LOAD"] == :ELEMENT
     @test length(Set(map(size, values(mesh["nodes"])))) == 1
-    # FIXME: this needs some rethinking
-#   elements = create_surface_elements(mesh, :LOAD)
-#   @test get_connectivity(elements[1]) == [8,10,9]
 end
 
 @testset "parse nodes from abaqus .inp file to Mesh (NX export)" begin
