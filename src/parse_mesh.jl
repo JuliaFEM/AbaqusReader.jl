@@ -158,8 +158,7 @@ function parse_section(model, lines, key, idx_start, idx_end, ::Union{Type{Val{:
         Type{Val{:ELSET}}})
     debug("Parsing $key section")
     data = Integer[]
-    set_regex_string = Dict(:NSET  => r"NSET=([\w\-\_]+)",
-                            :ELSET => r"ELSET=([\w\-\_]+)" )
+    set_regex_string = Dict(:NSET  => r"NSET=([\w\-\_]+)", :ELSET => r"ELSET=([\w\-\_]+)" )
     selected_set = key == :NSET ? "node_sets" : "element_sets"
     definition = lines[idx_start]
     regex_string = set_regex_string[key]
