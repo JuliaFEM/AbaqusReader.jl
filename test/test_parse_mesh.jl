@@ -96,3 +96,10 @@ end
     mesh = open(parse_abaqus, fn)
     @test mesh["node_sets"]["testgen"] == [7, 9, 11, 13]
 end
+
+@testset "parse ELSET" begin
+    lines = ["*ELSET, ELSET=TEST1", "1"]
+    mesh = Dict("element_sets" => Dict{String, Vector{Int64}}())
+    parse_section(mesh, lines, :ELSET, 1, 2, Val{:ELSET})
+    @test mesh["element_sets"]["TEST1"] == [1]
+end
