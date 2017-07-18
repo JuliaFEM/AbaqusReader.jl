@@ -74,12 +74,15 @@ in multiple lines, which is why iterator is used to handle
 this problem.
 """
 function consumeList(arr, start, stop)
+    idx = start - 1
     function _it()
-        for i=start:stop
-            produce(arr[i])
+        idx += 1
+        if idx > stop
+            return nothing
         end
+        arr[idx]
     end
-    Task(_it)
+    _it
 end
 
 """
@@ -95,7 +98,7 @@ function parse_section(model, lines, key, idx_start, idx_end, ::Type{Val{:ELEMEN
     info("Parsing elements. Type: $(element_type)")
     list_iterator = consumeList(lines, idx_start+1, idx_end)
     ids = Integer[]
-    line = consume(list_iterator)
+    line = list_iterator()
     while line != nothing
         arr_num_as_str = matchall(r"[0-9]+", line)
         numbers = map(x-> parse(Int, x), arr_num_as_str)
@@ -105,7 +108,7 @@ function parse_section(model, lines, key, idx_start, idx_end, ::Type{Val{:ELEMEN
             connectivity = numbers[2:end]
             while length(connectivity) != eltype_nodes
                 @assert length(connectivity) < eltype_nodes
-                line = consume(list_iterator)
+                line = list_iterator()
                 arr_num_as_str = matchall(r"[0-9]+", line)
                 numbers = map(x-> parse(Int, x), arr_num_as_str)
                 push!(connectivity, numbers...)
@@ -113,7 +116,7 @@ function parse_section(model, lines, key, idx_start, idx_end, ::Type{Val{:ELEMEN
             model["elements"][id] = connectivity
             model["element_types"][id] = element_type
         end
-        line = consume(list_iterator)
+        line = list_iterator()
     end
     has_set_def = match(r"ELSET=([\w\_\-]+)", definition) 
     if has_set_def != nothing
