@@ -1,6 +1,7 @@
 # This file is a part of JuliaFEM.
 # License is MIT: see https://github.com/JuliaFEM/JuliaFEM.jl/blob/master/LICENSE.md
 
+# Define element type and number of nodes in element
 element_has_nodes(::Type{Val{:C3D4}}) = 4
 element_has_type( ::Type{Val{:C3D4}}) = :Tet4
 
@@ -23,19 +24,55 @@ element_has_type(::Type{Val{:STRI65}}) = :Tri6
 element_has_nodes(::Type{Val{:CPS4}}) = 4
 element_has_type(::Type{Val{:CPS4}}) = :Quad4
 
-"""
-Checks for if line is a comment line or just empty
+"""Checks for a comment or empty line
+
+Function return true, if line starts with comment character "**"
+or has length of 0
 """
 function empty_or_comment_line{T<:AbstractString}(line::T)
     startswith(line, "**") || (length(line) == 0)
 end
 
+"""Match words from both sides of '=' character
 """
-Function for parsing nodes from the file
-"""
-function parse_section(model, lines, key::Symbol, idx_start,
-    idx_end, ::Type{Val{:NODE}})
+function matchset(definition)
+    matchall(r"([\w\_\-]+[ ]*=[ ]*[\w\_\-]+)", definition)
+end
 
+"""Parse string to get set type and name
+"""
+function parse_definition(definition)
+    set_defs = Dict()
+    set_definition = matchset(definition)
+    set_definition == nothing && return nothing
+    for x in set_definition
+        name, values = map(strip, split(x, "="))    
+        set_defs[lowercase(name)] = values
+    end
+    set_defs
+end
+
+"""Parse all the numbers from string
+"""
+function parse_numbers(line, type_)
+    m = matchall(r"[0-9]+", line)
+    map(x-> parse(type_, x), m)
+end
+
+"""Add set to model, if set exists
+"""
+function add_set!(model, definition, model_key, abaqus_key, ids)
+   has_set_def = parse_definition(definition)
+    if has_set_def != nothing
+      set_name = has_set_def[abaqus_key]
+      info("Adding $abaqus_key: $set_name")
+      model[model_key][set_name] = ids
+  end    
+end
+
+"""Parse nodes from the lines
+"""
+function parse_section(model, lines, key::Symbol, idx_start, idx_end, ::Type{Val{:NODE}})
     info("Parsing *NODE block between lines $idx_start .. $idx_end")
     nnodes = 0
     ids = Integer[]
@@ -47,27 +84,22 @@ function parse_section(model, lines, key::Symbol, idx_start,
             node_id = parse(Int, m[1])
             coords = float(m[2:end])
             model["nodes"][node_id] = coords
+            push!(ids, node_id)
             nnodes += 1
         end
     end
     info("$nnodes nodes found")
-    has_set_def = match(r"NSET=([\w\_\-]+)", definition) 
-    if has_set_def != nothing
-      set_name = has_set_def[1]
-      info("Creating node set $set_name")
-      model["node_sets"][set_name] = ids
-  end
+    add_set!(model, definition, "node_sets", "nset", ids)
 end
 
-"""
-Custon regex to find match from string. Index used if there are multiple matches
+"""Custon regex to find match from string. Index used if there are multiple matches
 """
 function regex_match(regex_str, line, idx)
     return match(regex_str, line).captures[idx]
-    println(eltype_sym)
 end
 
-"""
+"""Custom list iterator
+
 Simple iterator for comsuming element list. Depending 
 on the used element, connectivity nodes might be listed
 in multiple lines, which is why iterator is used to handle
@@ -85,11 +117,13 @@ function consumeList(arr, start, stop)
     _it
 end
 
-"""
-Parse elements from input.
+"""Parse elements from input lines
+
+Reads element ids and their connectivity nodes from input lines.
+If elset definition exists, also adds the set to model.
 """
 function parse_section(model, lines, key, idx_start, idx_end, ::Type{Val{:ELEMENT}})
-    #definition = uppercase(lines[idx_start])
+    ids = Integer[]
     definition = lines[idx_start]
     element_type = regex_match(r"TYPE=([\w\-\_]+)", definition, 1)
     eltype_sym = Symbol(element_type)
@@ -97,11 +131,9 @@ function parse_section(model, lines, key, idx_start, idx_end, ::Type{Val{:ELEMEN
     element_type = element_has_type(Val{eltype_sym})
     info("Parsing elements. Type: $(element_type)")
     list_iterator = consumeList(lines, idx_start+1, idx_end)
-    ids = Integer[]
     line = list_iterator()
     while line != nothing
-        arr_num_as_str = matchall(r"[0-9]+", line)
-        numbers = map(x-> parse(Int, x), arr_num_as_str)
+        numbers = parse_numbers(line, Int)
         if !(empty_or_comment_line(line))
             id = numbers[1]
             push!(ids, id)
@@ -109,8 +141,7 @@ function parse_section(model, lines, key, idx_start, idx_end, ::Type{Val{:ELEMEN
             while length(connectivity) != eltype_nodes
                 @assert length(connectivity) < eltype_nodes
                 line = list_iterator()
-                arr_num_as_str = matchall(r"[0-9]+", line)
-                numbers = map(x-> parse(Int, x), arr_num_as_str)
+                numbers = parse_numbers(line, Int)
                 push!(connectivity, numbers...)
             end
             model["elements"][id] = connectivity
@@ -118,66 +149,52 @@ function parse_section(model, lines, key, idx_start, idx_end, ::Type{Val{:ELEMEN
         end
         line = list_iterator()
     end
-    has_set_def = match(r"ELSET=([\w\_\-]+)", definition) 
-    if has_set_def != nothing
-      set_name = has_set_def[1]
-      info("Creating elset $set_name")
-      model["element_sets"][set_name] = ids
-  end
+    add_set!(model, definition, "element_sets", "elset", ids)
 end
 
+"""Parse node and elementset from input lines
 """
-Parsing Node- and ElementSets. 
-"""
-function parse_section(model, lines, key, idx_start, idx_end, ::Union{Type{Val{:NSET}}, Type{Val{:ELSET}}})
+function parse_section(model, lines, key, idx_start, idx_end, ::Union{Type{Val{:NSET}},
+        Type{Val{:ELSET}}})
+    debug("Parsing $key section")
+    data = Integer[]
     set_regex_string = Dict(:NSET  => r"NSET=([\w\-\_]+)",
                             :ELSET => r"ELSET=([\w\-\_]+)" )
-    #definition = uppercase(lines[idx_start])
-    # FIXME: do not uppercase set names
+    selected_set = key == :NSET ? "node_sets" : "element_sets"
     definition = lines[idx_start]
     regex_string = set_regex_string[key]
     set_name = regex_match(regex_string, definition, 1)
     info("Creating $(lowercase(string(key))) $set_name")
-    data = Integer[]
+    
     if endswith(strip(definition), "GENERATE")
         line = lines[idx_start + 1]
-        m = matchall(r"[0-9]+", line)
-        first_id, last_id, step = map(x-> parse(Int, x), m)
+        first_id, last_id, step = parse_numbers(line, Int)
         set_ids = collect(first_id:step:last_id)
         push!(data, set_ids...)
     else
         for line in lines[idx_start + 1: idx_end]
             if !(empty_or_comment_line(line))
-                m = matchall(r"[0-9]+", line)
-                set_ids = map(s -> parse(Int, s), m)
-                try
-                    push!(data, set_ids...)
-                catch err
-                    if isa(err, MethodError)
-                        warn("Problems with element set creation")
-                    end
-                end
+                set_ids = parse_numbers(line, Int)
+                push!(data, set_ids...)
             end
         end
     end
-    selected_set = key == :NSET ? "node_sets" : "element_sets"
     model[selected_set][set_name] = data
-end 
+end
 
-"""
-Parse SURFACE keyword
+"""Parse SURFACE keyword
 """
 function parse_section(model, lines, key, idx_start, idx_end, ::Type{Val{:SURFACE}})
-    debug("Parsing surface")
-    #definition = uppercase(lines[idx_start])
+    debug("Parsing surface section")
+    data = Vector{Tuple{Int64, Symbol}}()
     definition = lines[idx_start]
-    #has_set_def = match(r"TYPE=([\w\_\-]+),.*NAME=([\w\_\-]+)", definition) 
-    has_set_def = Dict(map(y -> lowercase(strip(y[1])) => strip(y[2]), map(x -> split(x, "="), matchall(r"([\w\_\-]+[ ]*=[ ]*[\w\_\-]+)", definition)))) 
+
+    has_set_def = parse_definition(definition)
     has_set_def != nothing || return
     debug(has_set_def)
     set_type = get(has_set_def, "type", "UNKNOWN")
     set_name = has_set_def["name"]
-    data = Vector{Tuple{Int64, Symbol}}()
+    
     for line in lines[idx_start + 1: idx_end]
         empty_or_comment_line(line) && continue
         m = match(r"(?P<element_id>\d+),.*(?P<element_side>S\d+).*", line)
@@ -194,8 +211,7 @@ function parse_section(model, lines, key, idx_start, idx_end, ::Type{Val{:SURFAC
     return
 end
 
-"""
-Find lines, which contain keywords, for example "*NODE"
+"""Find lines, which contain keywords, for example "*NODE"
 """
 function find_keywords(lines)
     indexes = Integer[]
@@ -207,18 +223,12 @@ function find_keywords(lines)
     return indexes
 end
 
-"""
-Main function for parsing Abaqus input file.
+"""Main function for parsing Abaqus input file.
+
+Function parses Abaqus input file and generates a dictionary of
+all the available keywords.
 """
 function parse_abaqus(fid::IOStream)
-    lines = readlines(fid)
-    keyword_indexes = find_keywords(lines)
-    nkeyword_indexes = length(keyword_indexes)
-    debug("$nkeyword_indexes keyword indexes found: $keyword_indexes")
-
-    push!(keyword_indexes, length(lines)+1)
-    idx_start = keyword_indexes[1]
-    keyword_sym::Symbol = :none
     parser::Function = x->()
     model = Dict{String, Dict}()
     model["nodes"] = Dict{Int64, Vector{Float64}}()
@@ -228,6 +238,15 @@ function parse_abaqus(fid::IOStream)
     model["element_sets"] = Dict{String, Vector{Int64}}()
     model["surface_sets"] = Dict{String, Vector{Tuple{Int64, Symbol}}}()
     model["surface_types"] = Dict{String, Symbol}()
+    keyword_sym::Symbol = :none
+
+    lines = readlines(fid)
+    keyword_indexes = find_keywords(lines)
+    nkeyword_indexes = length(keyword_indexes)
+    debug("$nkeyword_indexes keyword indexes found: $keyword_indexes")
+    push!(keyword_indexes, length(lines)+1)
+    idx_start = keyword_indexes[1]
+
     for idx_end in keyword_indexes[2:end]
         keyword_line = strip(uppercase(lines[idx_start]))
         keyword = strip(regex_match(r"\s*([\w ]+)", keyword_line, 1))
