@@ -18,3 +18,8 @@ end
     elements = create_surface_elements(mesh, "LOAD")
     @test elements[1] == (:Tri3, [8,10,9])
 end
+
+@testset "throw error if unknown element or side defined" begin
+    @test_throws(Exception, create_surface_element(:Tet5, :S1, [8, 9, 10, 2]))
+    @test_throws(Exception, create_surface_element(:Tet4, :S5, [8, 9, 10, 2]))
+end

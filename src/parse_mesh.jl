@@ -158,8 +158,7 @@ function parse_section(model, lines, key, idx_start, idx_end, ::Union{Type{Val{:
         Type{Val{:ELSET}}})
     debug("Parsing $key section")
     data = Integer[]
-    set_regex_string = Dict(:NSET  => r"NSET=([\w\-\_]+)",
-                            :ELSET => r"ELSET=([\w\-\_]+)" )
+    set_regex_string = Dict(:NSET  => r"NSET=([\w\-\_]+)", :ELSET => r"ELSET=([\w\-\_]+)" )
     selected_set = key == :NSET ? "node_sets" : "element_sets"
     definition = lines[idx_start]
     regex_string = set_regex_string[key]
@@ -198,10 +197,6 @@ function parse_section(model, lines, key, idx_start, idx_end, ::Type{Val{:SURFAC
     for line in lines[idx_start + 1: idx_end]
         empty_or_comment_line(line) && continue
         m = match(r"(?P<element_id>\d+),.*(?P<element_side>S\d+).*", line)
-        if isa(m, Void)
-            warn("read_abaqus, parsing surface: line $line")
-            continue
-        end
         element_id = parse(Int, m[:element_id])
         element_side = Symbol(m[:element_side])
         push!(data, (element_id, element_side))
