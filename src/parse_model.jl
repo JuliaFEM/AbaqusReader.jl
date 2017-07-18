@@ -149,8 +149,8 @@ end
 macro register_abaqus_keyword(keyword)
     underscored = Symbol(replace(keyword, " ", "_"))
     quote
-        global is_abaqus_keyword_registered
-        typealias $underscored Type{Val{Symbol($keyword)}}
+        global is_abaqus_keyword_registered, $underscored
+        $underscored = Type{Val{Symbol($keyword)}}
         is_abaqus_keyword_registered(::Type{Val{Symbol($keyword)}}) = true
     end
 end
