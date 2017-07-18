@@ -79,10 +79,6 @@ type Keyword
     options :: Vector{Union{AbstractString, Pair}}
 end
 
-function getindex(kw::Keyword, s)
-    return parse(Dict(kw.options)[s])
-end
-
 type AbaqusReaderState
     section :: Nullable{Keyword}
     material :: Nullable{AbstractMaterial}
@@ -297,11 +293,7 @@ function open_section!(model, state, ::MATERIAL)
     material_name = Symbol(get_option(state, "NAME"))
     material = Material(material_name, [])
     state.material = material
-    if haskey(model.materials, material_name)
-        warn("Material $material_name already exists in model, skipping definition.")
-    else
-        model.materials[material_name] = material
-    end
+    model.materials[material_name] = material
 end
 
 function close_section!(model, state, ::ELASTIC)

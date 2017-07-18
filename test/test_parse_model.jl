@@ -4,6 +4,7 @@
 using Base.Test
 
 using AbaqusReader: abaqus_read_model
+using AbaqusReader: parse_keyword
 
 datadir = first(splitext(basename(@__FILE__)))
 
@@ -25,10 +26,16 @@ datadir = first(splitext(basename(@__FILE__)))
     @test length(step.boundary_conditions) == 2
 
     bc = step.boundary_conditions[1]
-    @test bc.data[1] == [:SYM12, 3]
-    @test bc.data[2] == [:SYM23, 1]
-    @test bc.data[3] == [:SYM13, 2]
+    @test bc.data[1] == [:SYM23, 1]
+    @test bc.data[2] == [:SYM13, 2]
 
     load = step.boundary_conditions[2]
     @test load.data[1] == [:LOAD, :P, 1.00000]
+end
+
+@testset "parse keyword" begin
+    k = parse_keyword("*SURFACE, NAME=TIE, SURFACE TO SURFACE")
+    @test k.options[1] == ("NAME" => "TIE")
+    @test k.options[2] == "SURFACE TO SURFACE"
+    @test_throws(Exception, parse_keyword("*SURFACE, MOI=HEI=EI"))
 end
