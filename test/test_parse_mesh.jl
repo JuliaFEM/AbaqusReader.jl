@@ -4,7 +4,7 @@
 using Base.Test
 
 using AbaqusReader: element_has_type, element_has_nodes, parse_abaqus,
-                    parse_section
+                    parse_section, abaqus_read_mesh
 
 datadir = first(splitext(basename(@__FILE__)))
 

@@ -10,4 +10,6 @@ include("keyword_register.jl")
 include("parse_model.jl")
 include("create_surface_elements.jl")
 
+export abaqus_read_mesh, abaqus_read_model
+
 end
