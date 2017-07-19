@@ -6,4 +6,5 @@ using AbaqusReader
 
 deploydocs(
     deps = Deps.pip("mkdocs", "python-markdown-math"),
-    repo = "github.com/JuliaFEM/AbaqusReader.jl.git")
+    repo = "github.com/JuliaFEM/AbaqusReader.jl.git",
+    julia = "0.6")

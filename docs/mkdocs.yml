@@ -1,5 +1,5 @@
 site_name: AbaqusReader.jl
-repo_url: https://github.com/JuliaFEM/AbaqusReader.jl
+repo_url: https://github.com/JuliaFEM/AbaqusReader.jl.git
 site_description: Parse ABAQUS .inp file
 site_author: ahojukka5
 
