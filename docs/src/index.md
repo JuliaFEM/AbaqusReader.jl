@@ -3,9 +3,38 @@
 ```@contents
 ```
 
-## Functions
+```@meta
+DocTestSetup = quote
+    using AbaqusReader
+end
+```
 
-Add here.
+## Exported functions
+
+```@docs
+abaqus_read_mesh
+abaqus_read_model
+create_surface_elements
+```
+
+## Internal functions
+
+```@docs
+AbaqusReader.parse_definition(definition)
+AbaqusReader.parse_section
+AbaqusReader.regex_match
+AbaqusReader.add_set!
+AbaqusReader.consumeList
+AbaqusReader.parse_numbers
+AbaqusReader.register_abaqus_keyword
+AbaqusReader.is_abaqus_keyword_registered
+AbaqusReader.element_mapping
+AbaqusReader.find_keywords
+AbaqusReader.matchset
+AbaqusReader.empty_or_comment_line
+AbaqusReader.create_surface_element
+AbaqusReader.parse_abaqus
+```
 
 ## Index
 
