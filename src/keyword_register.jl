@@ -1,5 +1,5 @@
 # This file is a part of JuliaFEM.
-# License is MIT: see https://github.com/JuliaFEM/JuliaFEM.jl/blob/master/LICENSE.md
+# License is MIT: see https://github.com/JuliaFEM/AbaqusReader.jl/blob/master/LICENSE
 
 global __register__ = Set{String}()
 
