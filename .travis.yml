@@ -12,7 +12,7 @@ before_script:
     - julia --color=yes -e 'Pkg.clone("https://github.com/ahojukka5/CheckHeader.jl.git")'
 script:
     - julia --color=yes -e 'Pkg.build("AbaqusReader")'
-    - julia --color=yes -e 'using CheckHeader; checkheader("NodeNumbering")'
+    - julia --color=yes -e 'using CheckHeader; checkheader("AbaqusReader")'
     - julia --color=yes -e 'cd(Pkg.dir("AbaqusReader", "test")); include("run_lint.jl")'
     - julia --color=yes -e 'cd(Pkg.dir("AbaqusReader", "docs")); include("make.jl")'
     - julia --color=yes -e 'Pkg.test("AbaqusReader", coverage=true)'
