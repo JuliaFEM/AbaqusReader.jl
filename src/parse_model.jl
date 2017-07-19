@@ -149,47 +149,51 @@ function is_new_section(line)
     return true
 end
 
-function maybe_close_section!(model, state; verbose=true)
+# open_section! is called right after keyword is found
+function open_section!()
+end
+
+# close_section! is called at the end or section or before new keyword
+function close_section!()
+end
+
+function maybe_close_section!(model, state)
+    debug("$(model.name): maybe_close_section!")
     isnull(state.section) && return
     section_name = get(state.section).name
-    verbose && info("Close section: $section_name")
+    info("Close section: $section_name")
     args = Tuple{Model, AbaqusReaderState, Type{Val{Symbol(section_name)}}}
     if method_exists(close_section!, args)
         close_section!(model, state, Val{Symbol(section_name)})
     else
-        verbose && warn("no close_section! found for $section_name")
+        debug("no close_section! found for $section_name")
     end
     state.section = nothing
 end
 
-function maybe_open_section!(model, state; verbose=true)
+function maybe_open_section!(model, state)
+    debug("$(model.name): maybe_open_section!")
     section_name = get(state.section).name
     section_options = get(state.section).options
-    verbose && info("New section: $section_name with options $section_options")
+    info("New section: $section_name with options $section_options")
     args = Tuple{Model, AbaqusReaderState, Type{Val{Symbol(section_name)}}}
     if method_exists(open_section!, args)
         open_section!(model, state, Val{Symbol(section_name)})
     else
-        verbose && warn("no open_section! found for $section_name")
+        debug("no open_section! found for $section_name")
     end
 end
 
-function new_section!(model, state, line::AbstractString; verbose=true)
-    maybe_close_section!(model, state; verbose=verbose)
+function new_section!(model, state, line::String)
+    maybe_close_section!(model, state)
     state.data = []
     state.section = parse_keyword(line)
-    maybe_open_section!(model, state; verbose=verbose)
+    maybe_open_section!(model, state)
 end
 
-# open_section! is called right after keyword is found
-function open_section! end
-
-# close_section! is called at the end or section or before new keyword
-function close_section! end
-
-function process_line!(model, state, line; verbose=false)
+function process_line!(model, state, line::String)
     if isnull(state.section)
-        verbose && info("section = nothing! line = $line")
+        info("section = nothing! line = $line")
         return
     end
     if is_keyword(line)

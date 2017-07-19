@@ -1,7 +1,7 @@
 # This file is a part of JuliaFEM.
 # License is MIT: see https://github.com/JuliaFEM/JuliaFEM.jl/blob/master/LICENSE.md
 
-let register=Set{String}()
+global __register__ = Set{String}()
 
 """
     register_abaqus_keyword(keyword::String)
@@ -9,8 +9,8 @@ let register=Set{String}()
 Add ABAQUS keyword `s` to register. That is, after registration every time
 keyword show up in `.inp` file a new section is started
 """
-global function register_abaqus_keyword(keyword::String)
-    push!(register, keyword)
+function register_abaqus_keyword(keyword::String)
+    push!(__register__, keyword)
     return Type{Val{Symbol(keyword)}}
 end
 
@@ -19,8 +19,6 @@ end
 
 Return true/false is ABAQUS keyword registered.
 """
-global function is_abaqus_keyword_registered(keyword::String)
-    return keyword in register
-end
-
+function is_abaqus_keyword_registered(keyword::String)
+    return keyword in __register__
 end

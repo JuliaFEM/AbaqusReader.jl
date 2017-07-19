@@ -46,8 +46,8 @@ function parse_definition(definition)
     set_definition = matchset(definition)
     set_definition == nothing && return nothing
     for x in set_definition
-        name, values = map(strip, split(x, "="))    
-        set_defs[lowercase(name)] = values
+        name, vals = map(strip, split(x, "="))    
+        set_defs[lowercase(name)] = vals
     end
     set_defs
 end
@@ -73,7 +73,7 @@ end
 """Parse nodes from the lines
 """
 function parse_section(model, lines, key::Symbol, idx_start, idx_end, ::Type{Val{:NODE}})
-    info("Parsing *NODE block between lines $idx_start .. $idx_end")
+    debug("Parsing $key block between lines $idx_start .. $idx_end")
     nnodes = 0
     ids = Integer[]
     definition = lines[idx_start]
@@ -123,6 +123,7 @@ Reads element ids and their connectivity nodes from input lines.
 If elset definition exists, also adds the set to model.
 """
 function parse_section(model, lines, key, idx_start, idx_end, ::Type{Val{:ELEMENT}})
+    debug("parse section $key")
     ids = Integer[]
     definition = lines[idx_start]
     element_type = regex_match(r"TYPE=([\w\-\_]+)", definition, 1)
@@ -167,8 +168,8 @@ function parse_section(model, lines, key, idx_start, idx_end, ::Union{Type{Val{:
     
     if endswith(strip(definition), "GENERATE")
         line = lines[idx_start + 1]
-        first_id, last_id, step = parse_numbers(line, Int)
-        set_ids = collect(first_id:step:last_id)
+        first_id, last_id, step_ = parse_numbers(line, Int)
+        set_ids = collect(first_id:step_:last_id)
         push!(data, set_ids...)
     else
         for line in lines[idx_start + 1: idx_end]
@@ -184,7 +185,7 @@ end
 """Parse SURFACE keyword
 """
 function parse_section(model, lines, key, idx_start, idx_end, ::Type{Val{:SURFACE}})
-    debug("Parsing surface section")
+    debug("Parsing surface section $key")
     data = Vector{Tuple{Int64, Symbol}}()
     definition = lines[idx_start]
 
@@ -224,7 +225,6 @@ Function parses Abaqus input file and generates a dictionary of
 all the available keywords.
 """
 function parse_abaqus(fid::IOStream)
-    parser::Function = x->()
     model = Dict{String, Dict}()
     model["nodes"] = Dict{Int64, Vector{Float64}}()
     model["node_sets"] = Dict{String, Vector{Int64}}()
