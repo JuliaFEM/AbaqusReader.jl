@@ -7,4 +7,4 @@ using AbaqusReader
 makedocs(
     modules = [AbaqusReader],
     checkdocs = :all,
-    strict = true)
+    strict = false)

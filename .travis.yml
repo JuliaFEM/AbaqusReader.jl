@@ -11,9 +11,9 @@ before_script:
     - julia --color=yes -e 'Pkg.add("Lint")'
 script:
     - julia --color=yes -e 'Pkg.build("AbaqusReader")'
-    - julia --color=yes -e 'Pkg.test("AbaqusReader", coverage=true)'
-after_success:
     - julia --color=yes -e 'cd(Pkg.dir("AbaqusReader", "test")); include("run_lint.jl")'
     - julia --color=yes -e 'cd(Pkg.dir("AbaqusReader", "docs")); include("make.jl")'
+    - julia --color=yes -e 'Pkg.test("AbaqusReader", coverage=true)'
+after_success:
     - julia --color=yes -e 'cd(Pkg.dir("AbaqusReader")); using Coverage; Coveralls.submit(Coveralls.process_folder())'
     - julia --color=yes -e 'cd(Pkg.dir("AbaqusReader", "docs")); include("deploy.jl")'
