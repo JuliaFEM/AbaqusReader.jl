@@ -150,13 +150,14 @@ function is_new_section(line)
 end
 
 # open_section! is called right after keyword is found
-function open_section!() end
+function open_section! end
 
 # close_section! is called at the end or section or before new keyword
-function close_section!() end
+function close_section! end
 
 function maybe_close_section!(model, state)
     debug("$(model.name): maybe_close_section!")
+    global close_section!
     isnull(state.section) && return
     section_name = get(state.section).name
     info("Close section: $section_name")
@@ -171,6 +172,7 @@ end
 
 function maybe_open_section!(model, state)
     debug("$(model.name): maybe_open_section!")
+    global open_section!
     section_name = get(state.section).name
     section_options = get(state.section).options
     info("New section: $section_name with options $section_options")
