@@ -65,7 +65,7 @@ end
 
 @testset "parse abaqus .inp created using hypermesh" begin
     fn = joinpath(datadir, "hypermesh_model.inp")
-    mesh = open(parse_abaqus, fn)
+    mesh = abaqus_read_mesh(fn)
     @test length(mesh["nodes"]) == 2
 end
 
