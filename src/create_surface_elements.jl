@@ -49,6 +49,12 @@ function create_surface_element(element_type::Symbol, element_side::Symbol,
     return surfel, surfel_gconn
 end
 
+"""
+    create_surface_elements(mesh, surface_name)
+
+Create surface elements for `surface` using mesh `mesh`.
+Mesh can be obtained by using `abaqus_read_mesh`.
+"""
 function create_surface_elements(mesh::Dict, surface_name::String)
     surface = mesh["surface_sets"][surface_name]
     elements = mesh["elements"]

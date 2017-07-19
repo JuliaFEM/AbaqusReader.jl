@@ -205,6 +205,13 @@ function process_line!(model, state, line::String)
     push!(state.data, line)
 end
 
+"""
+    abaqus_read_model(filename::String)
+
+Read ABAQUS model from file. Include also boundary conditions, load steps
+and so on. If only mesh is needed, it's better to use `abaqus_read_mesh`
+insted.
+"""
 function abaqus_read_model(fn::String)
 
     model_path = dirname(fn)
