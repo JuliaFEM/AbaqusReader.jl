@@ -217,7 +217,7 @@ function abaqus_read_model(fn::String)
 
     fid = open(fn)
     for line in eachline(fid)
-        line = strip(line)
+        line = convert(String, strip(line))
         is_comment(line) && continue
         if is_new_section(line)
             new_section!(model, state, line)
