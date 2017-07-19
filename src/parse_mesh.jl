@@ -1,5 +1,5 @@
 # This file is a part of JuliaFEM.
-# License is MIT: see https://github.com/JuliaFEM/JuliaFEM.jl/blob/master/LICENSE.md
+# License is MIT: see https://github.com/JuliaFEM/AbaqusReader.jl/blob/master/LICENSE
 
 # Define element type and number of nodes in element
 element_has_nodes(::Type{Val{:C3D4}}) = 4
