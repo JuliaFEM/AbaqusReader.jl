@@ -142,23 +142,6 @@ function parse_keyword(line; uppercase_keyword=true)
     return keyword
 end
 
-macro register_abaqus_keyword(keyword)
-    underscored = Symbol(replace(keyword, " ", "_"))
-    quote
-        global is_abaqus_keyword_registered, $underscored
-        $underscored = Type{Val{Symbol($keyword)}}
-        is_abaqus_keyword_registered(::Type{Val{Symbol($keyword)}}) = true
-    end
-end
-
-function is_abaqus_keyword_registered(s::AbstractString)
-    return is_abaqus_keyword_registered(Val{Symbol(s)})
-end
-
-function is_abaqus_keyword_registered(others)
-    return false
-end
-
 function is_new_section(line)
     is_keyword(line) || return false
     section = parse_keyword(line)
@@ -253,24 +236,24 @@ end
 # and also is_keyword_registered("SOLID SECTION") returns true after
 # registration, also notice underscoring
 
-@register_abaqus_keyword("SOLID SECTION")
+SOLID_SECTION = register_abaqus_keyword("SOLID SECTION")
 
-@register_abaqus_keyword("MATERIAL")
-@register_abaqus_keyword("ELASTIC")
+MATERIAL = register_abaqus_keyword("MATERIAL")
+ELASTIC = register_abaqus_keyword("ELASTIC")
 
-@register_abaqus_keyword("STEP")
-@register_abaqus_keyword("STATIC")
-@register_abaqus_keyword("END STEP")
+STEP = register_abaqus_keyword("STEP")
+STATIC = register_abaqus_keyword("STATIC")
+END_STEP = register_abaqus_keyword("END STEP")
 
-@register_abaqus_keyword("BOUNDARY")
-@register_abaqus_keyword("CLOAD")
-@register_abaqus_keyword("DLOAD")
-@register_abaqus_keyword("DSLOAD")
+BOUNDARY = register_abaqus_keyword("BOUNDARY")
+CLOAD = register_abaqus_keyword("CLOAD")
+DLOAD = register_abaqus_keyword("DLOAD")
+DSLOAD = register_abaqus_keyword("DSLOAD")
 const BOUNDARY_CONDITIONS = Union{BOUNDARY, CLOAD, DLOAD, DSLOAD}
 
-@register_abaqus_keyword("NODE PRINT")
-@register_abaqus_keyword("EL PRINT")
-@register_abaqus_keyword("SECTION PRINT")
+NODE_PRINT = register_abaqus_keyword("NODE PRINT")
+EL_PRINT = register_abaqus_keyword("EL PRINT")
+SECTION_PRINT = register_abaqus_keyword("SECTION PRINT")
 const OUTPUT_REQUESTS = Union{NODE_PRINT, EL_PRINT, SECTION_PRINT}
 
 ## Properties
@@ -284,6 +267,7 @@ function open_section!(model, state, ::SOLID_SECTION)
 end
 
 function close_section!(model, state, ::SOLID_SECTION)
+    name = model.name
     state.property = nothing
 end
 
@@ -297,7 +281,7 @@ function open_section!(model, state, ::MATERIAL)
 end
 
 function close_section!(model, state, ::ELASTIC)
-    # FIXME
+    name = model.name
     @assert length(state) == 1
     E, nu = first(get_data(state))
     material_property = Elastic(E, nu)
@@ -308,17 +292,20 @@ end
 ## Steps
 
 function open_section!(model, state, ::STEP)
-    step = Step(nothing, Vector(), Vector())
-    state.step = step
-    push!(model.steps, step)
+    name = model.name
+    step_ = Step(nothing, Vector(), Vector())
+    state.step = step_
+    push!(model.steps, step_)
 end
 
 function open_section!(model, state, ::STATIC)
+    name = model.name
     isnull(state.step) && error("*STATIC outside *STEP ?")
     get(state.step).kind = :STATIC
 end
 
 function open_section!(model, state, ::END_STEP)
+    name = model.name
     state.step = nothing
 end
 
@@ -332,18 +319,19 @@ function close_section!(model, state, ::BOUNDARY_CONDITIONS)
     if isnull(state.step)
         push!(model.boundary_conditions, bc)
     else
-        step = get(state.step)
-        push!(step.boundary_conditions, bc)
+        step_ = get(state.step)
+        push!(step_.boundary_conditions, bc)
     end
 end
 
 ## Steps -- output requests
 
 function close_section!(model, state, ::OUTPUT_REQUESTS)
+    name = model.name
     kind, target = map(parse, split(get(state.section).name, " "))
     data = get_data(state)
     options = get_options(state)
     request = OutputRequest(kind, data, options, target)
-    step = get(state.step)
-    push!(step.output_requests, request)
+    step_ = get(state.step)
+    push!(step_.output_requests, request)
 end
