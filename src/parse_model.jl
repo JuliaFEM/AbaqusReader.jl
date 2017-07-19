@@ -150,12 +150,10 @@ function is_new_section(line)
 end
 
 # open_section! is called right after keyword is found
-function open_section!()
-end
+function open_section!() end
 
 # close_section! is called at the end or section or before new keyword
-function close_section!()
-end
+function close_section!() end
 
 function maybe_close_section!(model, state)
     debug("$(model.name): maybe_close_section!")
