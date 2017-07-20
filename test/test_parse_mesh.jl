@@ -103,3 +103,9 @@ end
     parse_section(mesh, lines, :ELSET, 1, 2, Val{:ELSET})
     @test mesh["element_sets"]["TEST1"] == [1]
 end
+
+@testset "parse tet4.inp" begin
+    fn = joinpath(datadir, "tet4.inp")
+    mesh = abaqus_read_mesh(fn)
+    @test length(mesh["nodes"]) == 116
+end

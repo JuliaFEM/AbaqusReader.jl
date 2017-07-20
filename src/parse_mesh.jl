@@ -62,12 +62,12 @@ end
 """Add set to model, if set exists
 """
 function add_set!(model, definition, model_key, abaqus_key, ids)
-   has_set_def = parse_definition(definition)
-    if has_set_def != nothing
-      set_name = has_set_def[abaqus_key]
-      info("Adding $abaqus_key: $set_name")
-      model[model_key][set_name] = ids
-  end    
+    has_set_def = parse_definition(definition)
+    if length(has_set_def) != 0
+        set_name = has_set_def[abaqus_key]
+        info("Adding $abaqus_key: $set_name")
+        model[model_key][set_name] = ids
+    end
 end
 
 """Parse nodes from the lines
