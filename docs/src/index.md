@@ -12,9 +12,9 @@ end
 ## Exported functions
 
 ```@docs
-abaqus_read_mesh
-abaqus_read_model
-create_surface_elements
+AbaqusReader.abaqus_read_mesh
+AbaqusReader.abaqus_read_model
+AbaqusReader.create_surface_elements
 ```
 
 ## Internal functions
