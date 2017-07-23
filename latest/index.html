@@ -122,98 +122,98 @@
 </code></pre>
 
 <p>Read ABAQUS mesh from file <code>fn</code>. Returns a dict with elements, nodes, element sets, node sets and other topologically imporant things, but not the actual model with boundary conditions, load steps and so on.</p>
-<p><a target='_blank' href='https://github.com/JuliaFEM/AbaqusReader.jl/tree/6425883c5d64fdbe953b7d980070fb0659503f64/src/parse_mesh.jl#L262-L268' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/JuliaFEM/AbaqusReader.jl/tree/94deba9c0e509bbc99e7db1083dd780171c89b66/src/parse_mesh.jl#L262-L268' class='documenter-source'>source</a><br></p>
 <p><a id='AbaqusReader.abaqus_read_model' href='#AbaqusReader.abaqus_read_model'>#</a>
 <strong><code>AbaqusReader.abaqus_read_model</code></strong> &mdash; <em>Function</em>.</p>
 <pre><code>abaqus_read_model(filename::String)
 </code></pre>
 
 <p>Read ABAQUS model from file. Include also boundary conditions, load steps and so on. If only mesh is needed, it's better to use <code>abaqus_read_mesh</code> insted.</p>
-<p><a target='_blank' href='https://github.com/JuliaFEM/AbaqusReader.jl/tree/6425883c5d64fdbe953b7d980070fb0659503f64/src/parse_model.jl#L208-L214' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/JuliaFEM/AbaqusReader.jl/tree/94deba9c0e509bbc99e7db1083dd780171c89b66/src/parse_model.jl#L208-L214' class='documenter-source'>source</a><br></p>
 <p><a id='AbaqusReader.create_surface_elements' href='#AbaqusReader.create_surface_elements'>#</a>
 <strong><code>AbaqusReader.create_surface_elements</code></strong> &mdash; <em>Function</em>.</p>
 <pre><code>create_surface_elements(mesh, surface_name)
 </code></pre>
 
 <p>Create surface elements for <code>surface</code> using mesh <code>mesh</code>. Mesh can be obtained by using <code>abaqus_read_mesh</code>.</p>
-<p><a target='_blank' href='https://github.com/JuliaFEM/AbaqusReader.jl/tree/6425883c5d64fdbe953b7d980070fb0659503f64/src/create_surface_elements.jl#L52-L57' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/JuliaFEM/AbaqusReader.jl/tree/94deba9c0e509bbc99e7db1083dd780171c89b66/src/create_surface_elements.jl#L52-L57' class='documenter-source'>source</a><br></p>
 <p><a id='Internal-functions-1'></a></p>
 <h2 id="internal-functions">Internal functions</h2>
 <p><a id='AbaqusReader.parse_definition-Tuple{Any}' href='#AbaqusReader.parse_definition-Tuple{Any}'>#</a>
 <strong><code>AbaqusReader.parse_definition</code></strong> &mdash; <em>Method</em>.</p>
 <p>Parse string to get set type and name</p>
-<p><a target='_blank' href='https://github.com/JuliaFEM/AbaqusReader.jl/tree/6425883c5d64fdbe953b7d980070fb0659503f64/src/parse_mesh.jl#L42-L44' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/JuliaFEM/AbaqusReader.jl/tree/94deba9c0e509bbc99e7db1083dd780171c89b66/src/parse_mesh.jl#L42-L44' class='documenter-source'>source</a><br></p>
 <p><a id='AbaqusReader.parse_section' href='#AbaqusReader.parse_section'>#</a>
 <strong><code>AbaqusReader.parse_section</code></strong> &mdash; <em>Function</em>.</p>
 <p>Parse nodes from the lines</p>
-<p><a target='_blank' href='https://github.com/JuliaFEM/AbaqusReader.jl/tree/6425883c5d64fdbe953b7d980070fb0659503f64/src/parse_mesh.jl#L73-L75' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/JuliaFEM/AbaqusReader.jl/tree/94deba9c0e509bbc99e7db1083dd780171c89b66/src/parse_mesh.jl#L73-L75' class='documenter-source'>source</a><br></p>
 <p>Parse elements from input lines</p>
 <p>Reads element ids and their connectivity nodes from input lines. If elset definition exists, also adds the set to model.</p>
-<p><a target='_blank' href='https://github.com/JuliaFEM/AbaqusReader.jl/tree/6425883c5d64fdbe953b7d980070fb0659503f64/src/parse_mesh.jl#L120-L125' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/JuliaFEM/AbaqusReader.jl/tree/94deba9c0e509bbc99e7db1083dd780171c89b66/src/parse_mesh.jl#L120-L125' class='documenter-source'>source</a><br></p>
 <p>Parse node and elementset from input lines</p>
-<p><a target='_blank' href='https://github.com/JuliaFEM/AbaqusReader.jl/tree/6425883c5d64fdbe953b7d980070fb0659503f64/src/parse_mesh.jl#L156-L158' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/JuliaFEM/AbaqusReader.jl/tree/94deba9c0e509bbc99e7db1083dd780171c89b66/src/parse_mesh.jl#L156-L158' class='documenter-source'>source</a><br></p>
 <p>Parse SURFACE keyword</p>
-<p><a target='_blank' href='https://github.com/JuliaFEM/AbaqusReader.jl/tree/6425883c5d64fdbe953b7d980070fb0659503f64/src/parse_mesh.jl#L185-L187' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/JuliaFEM/AbaqusReader.jl/tree/94deba9c0e509bbc99e7db1083dd780171c89b66/src/parse_mesh.jl#L185-L187' class='documenter-source'>source</a><br></p>
 <p><a id='AbaqusReader.regex_match' href='#AbaqusReader.regex_match'>#</a>
 <strong><code>AbaqusReader.regex_match</code></strong> &mdash; <em>Function</em>.</p>
 <p>Custon regex to find match from string. Index used if there are multiple matches</p>
-<p><a target='_blank' href='https://github.com/JuliaFEM/AbaqusReader.jl/tree/6425883c5d64fdbe953b7d980070fb0659503f64/src/parse_mesh.jl#L95-L97' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/JuliaFEM/AbaqusReader.jl/tree/94deba9c0e509bbc99e7db1083dd780171c89b66/src/parse_mesh.jl#L95-L97' class='documenter-source'>source</a><br></p>
 <p><a id='AbaqusReader.add_set!' href='#AbaqusReader.add_set!'>#</a>
 <strong><code>AbaqusReader.add_set!</code></strong> &mdash; <em>Function</em>.</p>
 <p>Add set to model, if set exists</p>
-<p><a target='_blank' href='https://github.com/JuliaFEM/AbaqusReader.jl/tree/6425883c5d64fdbe953b7d980070fb0659503f64/src/parse_mesh.jl#L62-L64' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/JuliaFEM/AbaqusReader.jl/tree/94deba9c0e509bbc99e7db1083dd780171c89b66/src/parse_mesh.jl#L62-L64' class='documenter-source'>source</a><br></p>
 <p><a id='AbaqusReader.consumeList' href='#AbaqusReader.consumeList'>#</a>
 <strong><code>AbaqusReader.consumeList</code></strong> &mdash; <em>Function</em>.</p>
 <p>Custom list iterator</p>
 <p>Simple iterator for comsuming element list. Depending  on the used element, connectivity nodes might be listed in multiple lines, which is why iterator is used to handle this problem.</p>
-<p><a target='_blank' href='https://github.com/JuliaFEM/AbaqusReader.jl/tree/6425883c5d64fdbe953b7d980070fb0659503f64/src/parse_mesh.jl#L101-L108' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/JuliaFEM/AbaqusReader.jl/tree/94deba9c0e509bbc99e7db1083dd780171c89b66/src/parse_mesh.jl#L101-L108' class='documenter-source'>source</a><br></p>
 <p><a id='AbaqusReader.parse_numbers' href='#AbaqusReader.parse_numbers'>#</a>
 <strong><code>AbaqusReader.parse_numbers</code></strong> &mdash; <em>Function</em>.</p>
 <p>Parse all the numbers from string</p>
-<p><a target='_blank' href='https://github.com/JuliaFEM/AbaqusReader.jl/tree/6425883c5d64fdbe953b7d980070fb0659503f64/src/parse_mesh.jl#L55-L57' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/JuliaFEM/AbaqusReader.jl/tree/94deba9c0e509bbc99e7db1083dd780171c89b66/src/parse_mesh.jl#L55-L57' class='documenter-source'>source</a><br></p>
 <p><a id='AbaqusReader.register_abaqus_keyword' href='#AbaqusReader.register_abaqus_keyword'>#</a>
 <strong><code>AbaqusReader.register_abaqus_keyword</code></strong> &mdash; <em>Function</em>.</p>
 <pre><code>register_abaqus_keyword(keyword::String)
 </code></pre>
 
 <p>Add ABAQUS keyword <code>s</code> to register. That is, after registration every time keyword show up in <code>.inp</code> file a new section is started</p>
-<p><a target='_blank' href='https://github.com/JuliaFEM/AbaqusReader.jl/tree/6425883c5d64fdbe953b7d980070fb0659503f64/src/keyword_register.jl#L6-L11' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/JuliaFEM/AbaqusReader.jl/tree/94deba9c0e509bbc99e7db1083dd780171c89b66/src/keyword_register.jl#L6-L11' class='documenter-source'>source</a><br></p>
 <p><a id='AbaqusReader.is_abaqus_keyword_registered' href='#AbaqusReader.is_abaqus_keyword_registered'>#</a>
 <strong><code>AbaqusReader.is_abaqus_keyword_registered</code></strong> &mdash; <em>Function</em>.</p>
 <pre><code>is_abaqus_keyword_registered(keyword::String)
 </code></pre>
 
 <p>Return true/false is ABAQUS keyword registered.</p>
-<p><a target='_blank' href='https://github.com/JuliaFEM/AbaqusReader.jl/tree/6425883c5d64fdbe953b7d980070fb0659503f64/src/keyword_register.jl#L17-L21' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/JuliaFEM/AbaqusReader.jl/tree/94deba9c0e509bbc99e7db1083dd780171c89b66/src/keyword_register.jl#L17-L21' class='documenter-source'>source</a><br></p>
 <p><a id='AbaqusReader.element_mapping' href='#AbaqusReader.element_mapping'>#</a>
 <strong><code>AbaqusReader.element_mapping</code></strong> &mdash; <em>Constant</em>.</p>
 <pre><code>element_mapping
 </code></pre>
 
 <p>This mapping table contains information what node ids locally match each side of element.</p>
-<p><a target='_blank' href='https://github.com/JuliaFEM/AbaqusReader.jl/tree/6425883c5d64fdbe953b7d980070fb0659503f64/src/create_surface_elements.jl#L4-L9' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/JuliaFEM/AbaqusReader.jl/tree/94deba9c0e509bbc99e7db1083dd780171c89b66/src/create_surface_elements.jl#L4-L9' class='documenter-source'>source</a><br></p>
 <p><a id='AbaqusReader.find_keywords' href='#AbaqusReader.find_keywords'>#</a>
 <strong><code>AbaqusReader.find_keywords</code></strong> &mdash; <em>Function</em>.</p>
 <p>Find lines, which contain keywords, for example "*NODE"</p>
-<p><a target='_blank' href='https://github.com/JuliaFEM/AbaqusReader.jl/tree/6425883c5d64fdbe953b7d980070fb0659503f64/src/parse_mesh.jl#L210-L212' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/JuliaFEM/AbaqusReader.jl/tree/94deba9c0e509bbc99e7db1083dd780171c89b66/src/parse_mesh.jl#L210-L212' class='documenter-source'>source</a><br></p>
 <p><a id='AbaqusReader.matchset' href='#AbaqusReader.matchset'>#</a>
 <strong><code>AbaqusReader.matchset</code></strong> &mdash; <em>Function</em>.</p>
 <p>Match words from both sides of '=' character</p>
-<p><a target='_blank' href='https://github.com/JuliaFEM/AbaqusReader.jl/tree/6425883c5d64fdbe953b7d980070fb0659503f64/src/parse_mesh.jl#L36-L38' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/JuliaFEM/AbaqusReader.jl/tree/94deba9c0e509bbc99e7db1083dd780171c89b66/src/parse_mesh.jl#L36-L38' class='documenter-source'>source</a><br></p>
 <p><a id='AbaqusReader.empty_or_comment_line' href='#AbaqusReader.empty_or_comment_line'>#</a>
 <strong><code>AbaqusReader.empty_or_comment_line</code></strong> &mdash; <em>Function</em>.</p>
 <p>Checks for a comment or empty line</p>
 <p>Function return true, if line starts with comment character "**" or has length of 0</p>
-<p><a target='_blank' href='https://github.com/JuliaFEM/AbaqusReader.jl/tree/6425883c5d64fdbe953b7d980070fb0659503f64/src/parse_mesh.jl#L27-L32' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/JuliaFEM/AbaqusReader.jl/tree/94deba9c0e509bbc99e7db1083dd780171c89b66/src/parse_mesh.jl#L27-L32' class='documenter-source'>source</a><br></p>
 <p><a id='AbaqusReader.create_surface_element' href='#AbaqusReader.create_surface_element'>#</a>
 <strong><code>AbaqusReader.create_surface_element</code></strong> &mdash; <em>Function</em>.</p>
 <p>Given element code, element side and global connectivity, determine boundary element. E.g. for Tet4 we have 4 sides S1..S4 and boundary element is of type Tri3.</p>
-<p><a target='_blank' href='https://github.com/JuliaFEM/AbaqusReader.jl/tree/6425883c5d64fdbe953b7d980070fb0659503f64/src/create_surface_elements.jl#L29-L32' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/JuliaFEM/AbaqusReader.jl/tree/94deba9c0e509bbc99e7db1083dd780171c89b66/src/create_surface_elements.jl#L29-L32' class='documenter-source'>source</a><br></p>
 <p><a id='AbaqusReader.parse_abaqus' href='#AbaqusReader.parse_abaqus'>#</a>
 <strong><code>AbaqusReader.parse_abaqus</code></strong> &mdash; <em>Function</em>.</p>
 <p>Main function for parsing Abaqus input file.</p>
 <p>Function parses Abaqus input file and generates a dictionary of all the available keywords.</p>
-<p><a target='_blank' href='https://github.com/JuliaFEM/AbaqusReader.jl/tree/6425883c5d64fdbe953b7d980070fb0659503f64/src/parse_mesh.jl#L222-L227' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/JuliaFEM/AbaqusReader.jl/tree/94deba9c0e509bbc99e7db1083dd780171c89b66/src/parse_mesh.jl#L222-L227' class='documenter-source'>source</a><br></p>
 <p><a id='Index-1'></a></p>
 <h2 id="index">Index</h2>
 <ul>
@@ -276,5 +276,5 @@
 
 <!--
 MkDocs version : 0.16.3
-Build Date UTC : 2017-07-21 13:34:31
+Build Date UTC : 2017-07-23 07:44:48
 -->
