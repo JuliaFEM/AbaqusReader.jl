@@ -8,7 +8,7 @@ With function `abaqus_read_model(filename::String)` it's also possible to parse 
 from model, like boundary conditions and steps.
 
 Reading mesh is made simple:
-```julia
+```
 julia> using AbaqusReader
 julia> filename = Pkg.dir("AbaqusReader", "test", "test_parse_mesh", "cube_tet4.inp")
 julia> mesh = abaqus_read_mesh(filename)
@@ -27,7 +27,7 @@ Like said, `mesh` is a simple dictionary containing other dictionaries like
 construct own finite element implementations based on real models done using ABAQUS.
 
 If boundary conditions are also requested, `abaqus_read_model` must be used:
-```julia
+```
 julia> model = abaqus_read_model("abaqus_file.inp")
 ```
 
@@ -36,12 +36,12 @@ This returns `AbaqusReader.Model` instance.
 ## Installing
 
 Package is not tagged yet, so installing goes like normally with unregistered packages, i.e.
-```bash
+```
 julia -e 'Pkg.clone("git@github.com:JuliaFEM/AbaqusReader.jl.git")`
 ```
 
 If the package is used in other packages, to make automatic testing pass, one must add the line above to the `.travis.yml`. Alternatively, one can add the following to `build/deps.jl`:
-```julia
+```
 Pkg.clone("git@github.com:JuliaFEM/AbaqusReader.jl.git")
 Pkg.build("AbaqusReader")
 ```
