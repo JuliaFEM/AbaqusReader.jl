@@ -32,16 +32,3 @@ julia> model = abaqus_read_model("abaqus_file.inp")
 ```
 
 This returns `AbaqusReader.Model` instance.
-
-## Installing
-
-Package is not tagged yet, so installing goes like normally with unregistered packages, i.e.
-```
-julia -e 'Pkg.clone("git@github.com:JuliaFEM/AbaqusReader.jl.git")`
-```
-
-If the package is used in other packages, to make automatic testing pass, one must add the line above to the `.travis.yml`. Alternatively, one can add the following to `build/deps.jl`:
-```
-Pkg.clone("git@github.com:JuliaFEM/AbaqusReader.jl.git")
-Pkg.build("AbaqusReader")
-```
