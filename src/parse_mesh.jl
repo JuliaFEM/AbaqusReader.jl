@@ -127,6 +127,10 @@ function parse_section(model, lines, key, idx_start, idx_end, ::Type{Val{:ELEMEN
     ids = Integer[]
     definition = lines[idx_start]
     element_type = regex_match(r"TYPE=([\w\-\_]+)", definition, 1)
+    if element_type=="DCOUP3D"
+        info("Element type $element_type not supported")
+        return
+    end
     eltype_sym = Symbol(element_type)
     eltype_nodes = element_has_nodes(Val{eltype_sym})
     element_type = element_has_type(Val{eltype_sym})
