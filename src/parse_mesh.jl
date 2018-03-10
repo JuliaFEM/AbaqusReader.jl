@@ -24,6 +24,9 @@ element_has_type(::Type{Val{:STRI65}}) = :Tri6
 element_has_nodes(::Type{Val{:CPS4}}) = 4
 element_has_type(::Type{Val{:CPS4}}) = :Quad4
 
+element_has_nodes(::Type{Val{:T2D2}}) = 2
+element_has_type(::Type{Val{:T2D2}}) = :Seg2
+
 """Checks for a comment or empty line
 
 Function return true, if line starts with comment character "**"
@@ -46,7 +49,7 @@ function parse_definition(definition)
     set_definition = matchset(definition)
     set_definition == nothing && return nothing
     for x in set_definition
-        name, vals = map(strip, split(x, "="))    
+        name, vals = map(strip, split(x, "="))
         set_defs[lowercase(name)] = vals
     end
     set_defs
@@ -100,7 +103,7 @@ end
 
 """Custom list iterator
 
-Simple iterator for comsuming element list. Depending 
+Simple iterator for comsuming element list. Depending
 on the used element, connectivity nodes might be listed
 in multiple lines, which is why iterator is used to handle
 this problem.
@@ -165,7 +168,7 @@ function parse_section(model, lines, key, idx_start, idx_end, ::Union{Type{Val{:
     regex_string = set_regex_string[key]
     set_name = regex_match(regex_string, definition, 1)
     info("Creating $(lowercase(string(key))) $set_name")
-    
+
     if endswith(strip(definition), "GENERATE")
         line = lines[idx_start + 1]
         first_id, last_id, step_ = parse_numbers(line, Int)
@@ -194,7 +197,7 @@ function parse_section(model, lines, key, idx_start, idx_end, ::Type{Val{:SURFAC
     debug(has_set_def)
     set_type = get(has_set_def, "type", "UNKNOWN")
     set_name = has_set_def["name"]
-    
+
     for line in lines[idx_start + 1: idx_end]
         empty_or_comment_line(line) && continue
         m = match(r"(?P<element_id>\d+),.*(?P<element_side>S\d+).*", line)
