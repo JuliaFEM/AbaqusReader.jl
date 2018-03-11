@@ -156,7 +156,6 @@ function open_section! end
 function close_section! end
 
 function maybe_close_section!(model, state)
-    debug("$(model.name): maybe_close_section!")
     global close_section!
     isnull(state.section) && return
     section_name = get(state.section).name
@@ -165,13 +164,12 @@ function maybe_close_section!(model, state)
     if method_exists(close_section!, args)
         close_section!(model, state, Val{Symbol(section_name)})
     else
-        debug("no close_section! found for $section_name")
+        warn("no close_section! found for $section_name")
     end
     state.section = nothing
 end
 
 function maybe_open_section!(model, state)
-    debug("$(model.name): maybe_open_section!")
     global open_section!
     section_name = get(state.section).name
     section_options = get(state.section).options
@@ -180,7 +178,7 @@ function maybe_open_section!(model, state)
     if method_exists(open_section!, args)
         open_section!(model, state, Val{Symbol(section_name)})
     else
-        debug("no open_section! found for $section_name")
+        warn("no open_section! found for $section_name")
     end
 end
 
