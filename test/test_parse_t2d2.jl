@@ -6,19 +6,18 @@ using Base.Test
 using AbaqusReader: abaqus_read_mesh
 using AbaqusReader: parse_keyword
 
-datadir = first(splitext(basename(@__FILE__)))
 @testset "parse abaqus t2d2 inp file to AbaqusMesh" begin
-    fn = joinpath(datadir,"t2d2_test.inp")
+    fn = abaqus_download("et22sfse.inp")
 
     mesh = abaqus_read_mesh(fn)
     node_dict = mesh["nodes"]
     elem_dict = mesh["elements"]
     elem_types=mesh["element_types"]
-    @test isapprox(node_dict[1], [0.0, 10.0])
-    @test isapprox(node_dict[2], [5.0, 10.0])
-    @test isapprox(node_dict[3], [10.0, 10.0])
-    @test isapprox(node_dict[4], [5.0, 0.0])
-    @test Set(mesh["element_sets"][String(:All_Elements)])== Set(1:3)
+    @test isapprox(node_dict[1], [5.0, 10.0])
+    @test isapprox(node_dict[2], [10.0, 10.0])
+    @test isapprox(node_dict[3], [15.0, 10.0])
+    @test isapprox(node_dict[4], [10.0, 0.0])
+    @test Set(mesh["element_sets"][String(:EALL)])== Set(1:3)
     @test elem_dict[1]== [4, 1]
     @test elem_dict[2]==[4, 2]
     @test elem_dict[3]== [4, 3]
