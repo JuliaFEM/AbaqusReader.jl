@@ -76,11 +76,9 @@ end
 """Parse nodes from the lines
 """
 function parse_section(model, lines, key::Symbol, idx_start, idx_end, ::Type{Val{:NODE}})
-    debug("Parsing $key block between lines $idx_start .. $idx_end")
     nnodes = 0
     ids = Integer[]
     definition = lines[idx_start]
-    debug("Definition line = $definition")
     for line in lines[idx_start + 1: idx_end]
         if !(empty_or_comment_line(line))
             m = matchall(r"[-0-9.eE+]+", line)
@@ -126,7 +124,6 @@ Reads element ids and their connectivity nodes from input lines.
 If elset definition exists, also adds the set to model.
 """
 function parse_section(model, lines, key, idx_start, idx_end, ::Type{Val{:ELEMENT}})
-    debug("parse section $key")
     ids = Integer[]
     definition = lines[idx_start]
     element_type = regex_match(r"TYPE=([\w\-\_]+)", definition, 1)
@@ -160,7 +157,6 @@ end
 """
 function parse_section(model, lines, key, idx_start, idx_end, ::Union{Type{Val{:NSET}},
         Type{Val{:ELSET}}})
-    debug("Parsing $key section")
     data = Integer[]
     set_regex_string = Dict(:NSET  => r"NSET=([\w\-\_]+)", :ELSET => r"ELSET=([\w\-\_]+)" )
     selected_set = key == :NSET ? "node_sets" : "element_sets"
@@ -188,13 +184,11 @@ end
 """Parse SURFACE keyword
 """
 function parse_section(model, lines, key, idx_start, idx_end, ::Type{Val{:SURFACE}})
-    debug("Parsing surface section $key")
     data = Vector{Tuple{Int64, Symbol}}()
     definition = lines[idx_start]
 
     has_set_def = parse_definition(definition)
     has_set_def != nothing || return
-    debug(has_set_def)
     set_type = get(has_set_def, "type", "UNKNOWN")
     set_name = has_set_def["name"]
 
@@ -241,7 +235,6 @@ function parse_abaqus(fid::IOStream)
     lines = readlines(fid)
     keyword_indexes = find_keywords(lines)
     nkeyword_indexes = length(keyword_indexes)
-    debug("$nkeyword_indexes keyword indexes found: $keyword_indexes")
     push!(keyword_indexes, length(lines)+1)
     idx_start = keyword_indexes[1]
 
@@ -253,9 +246,7 @@ function parse_abaqus(fid::IOStream)
         if method_exists(parse_section, args)
             parse_section(model, lines, k_sym, idx_start, idx_end-1, Val{k_sym})
         else
-            debug("Unknown section: '$(keyword)'")
-            debug("keyword_line = '$keyword_line'")
-            debug("idx_start = $idx_start, idx_end = $idx_end")
+            warn("Unknown section: '$(keyword)'")
         end
         idx_start = idx_end
     end

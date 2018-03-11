@@ -3,8 +3,6 @@
 
 module AbaqusReader
 
-using Logging
-
 include("parse_mesh.jl")
 include("keyword_register.jl")
 include("parse_model.jl")
