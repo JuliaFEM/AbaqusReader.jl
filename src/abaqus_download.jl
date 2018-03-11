@@ -24,20 +24,19 @@ in that case the file will be downloaded to that directory.
 Function call will return full path to downloaded file or nothing, if download
 is failing because of missing environment variable `ABAQUS_DOWNLOAD_DIR`.
 """
-function abaqus_download(model_name; dryrun=false)
-    path = get(ENV, "ABAQUS_DOWNLOAD_DIR", ".")
+function abaqus_download(model_name, env=ENV; dryrun=false)
+    path = get(env, "ABAQUS_DOWNLOAD_DIR", "")
     fn = joinpath(path, model_name)
     if isfile(fn)  # already downloaded
         return fn
     end
-    if !haskey(ENV, "ABAQUS_DOWNLOAD_URL")
-        info("ABAQUS input file $fn not found and `ABAQUS_DOWNLOAD_URL` not ",
-             "set, unable to download file. To enable automatic model ",
-             "downloading, set url to models to environment variable
-             `ABAQUS_DOWNLOAD_URL`")
-        return nothing
+    if !haskey(env, "ABAQUS_DOWNLOAD_URL")
+        error("ABAQUS input file $fn not found and `ABAQUS_DOWNLOAD_URL` not ",
+              "set, unable to download file. To enable automatic model ",
+              "downloading, set url to models to environment variable
+              `ABAQUS_DOWNLOAD_URL`")
     end
-    url = joinpath(ENV["ABAQUS_DOWNLOAD_URL"], model_name)
+    url = joinpath(env["ABAQUS_DOWNLOAD_URL"], model_name)
     info("Downloading model $model_name to $fn")
     dryrun || download(url, fn)
     return fn
