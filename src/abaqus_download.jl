@@ -25,10 +25,7 @@ Function call will return full path to downloaded file or nothing, if download
 is failing because of missing environment variable `ABAQUS_DOWNLOAD_DIR`.
 """
 function abaqus_download(model_name; dryrun=false)
-    path = ""
-    if haskey(ENV, "ABAQUS_DOWNLOAD_DIR")
-        path = ENV["ABAQUS_DOWNLOAD_DIR"]
-    end
+    path = get(ENV, "ABAQUS_DOWNLOAD_DIR", ".")
     fn = joinpath(path, model_name)
     if isfile(fn)  # already downloaded
         return fn
