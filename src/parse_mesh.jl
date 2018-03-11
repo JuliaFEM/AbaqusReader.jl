@@ -75,7 +75,7 @@ end
 
 """Parse nodes from the lines
 """
-function parse_section(model, lines, key::Symbol, idx_start, idx_end, ::Type{Val{:NODE}})
+function parse_section(model, lines, ::Symbol, idx_start, idx_end, ::Type{Val{:NODE}})
     nnodes = 0
     ids = Integer[]
     definition = lines[idx_start]
@@ -123,7 +123,7 @@ end
 Reads element ids and their connectivity nodes from input lines.
 If elset definition exists, also adds the set to model.
 """
-function parse_section(model, lines, key, idx_start, idx_end, ::Type{Val{:ELEMENT}})
+function parse_section(model, lines, ::Symbol, idx_start, idx_end, ::Type{Val{:ELEMENT}})
     ids = Integer[]
     definition = lines[idx_start]
     element_type = regex_match(r"TYPE=([\w\-\_]+)", definition, 1)
@@ -183,7 +183,7 @@ end
 
 """Parse SURFACE keyword
 """
-function parse_section(model, lines, key, idx_start, idx_end, ::Type{Val{:SURFACE}})
+function parse_section(model, lines, ::Symbol, idx_start, idx_end, ::Type{Val{:SURFACE}})
     data = Vector{Tuple{Int64, Symbol}}()
     definition = lines[idx_start]
 
