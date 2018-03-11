@@ -5,17 +5,14 @@ using AbaqusReader
 using Base.Test
 
 @testset "test abaqus_download" begin
-    original_ENV = copy(ENV)
-    delete!(ENV, "ABAQUS_DOWNLOAD_URL")
-    delete!(ENV, "ABAQUS_DOWNLOAD_DIR")
+    ENV_ = similar(ENV)
     fn = tempname()
     touch(fn)
     model_name = basename(fn)
-    ENV["ABAQUS_DOWNLOAD_DIR"] = dirname(fn)
-    @test abaqus_download(model_name) == fn
+    ENV_["ABAQUS_DOWNLOAD_DIR"] = dirname(fn)
+    @test abaqus_download(model_name, ENV_) == fn
     isfile(fn) && rm(fn)
-    @test abaqus_download(model_name) == nothing
-    ENV["ABAQUS_DOWNLOAD_URL"] = "https://models.com"
-    @test abaqus_download(model_name; dryrun=true) == fn
-    merge!(ENV, original_ENV)
+    @test_throws Exception abaqus_download(model_name, ENV_)
+    ENV_["ABAQUS_DOWNLOAD_URL"] = "https://models.com"
+    @test abaqus_download(model_name, ENV_; dryrun=true) == fn
 end
