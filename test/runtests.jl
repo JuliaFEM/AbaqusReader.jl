@@ -8,4 +8,5 @@ using Base.Test
     include("test_parse_mesh.jl")
     include("test_parse_model.jl")
     include("test_create_surface_elements.jl")
+    include("test_download.jl")
 end
