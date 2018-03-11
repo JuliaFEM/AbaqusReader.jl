@@ -12,6 +12,7 @@ end
 ## Exported functions
 
 ```@docs
+AbaqusReader.abaqus_download
 AbaqusReader.abaqus_read_mesh
 AbaqusReader.abaqus_read_model
 AbaqusReader.create_surface_elements
