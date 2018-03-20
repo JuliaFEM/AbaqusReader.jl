@@ -27,6 +27,9 @@ element_has_type(::Type{Val{:CPS4}}) = :Quad4
 element_has_nodes(::Type{Val{:T2D2}}) = 2
 element_has_type(::Type{Val{:T2D2}}) = :Seg2
 
+element_has_nodes(::Type{Val{:T3D2}}) = 2
+element_has_type(::Type{Val{:T3D2}}) = :Seg2
+
 """Checks for a comment or empty line
 
 Function return true, if line starts with comment character "**"
