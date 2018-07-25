@@ -35,7 +35,7 @@ element_has_type(::Type{Val{:T3D2}}) = :Seg2
 Function return true, if line starts with comment character "**"
 or has length of 0
 """
-function empty_or_comment_line{T<:AbstractString}(line::T)
+function empty_or_comment_line(line::T) where T<:AbstractString
     startswith(line, "**") || (length(line) == 0)
 end
 

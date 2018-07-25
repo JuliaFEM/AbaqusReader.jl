@@ -12,7 +12,7 @@ abstract type AbstractStep end
 abstract type AbstractBoundaryCondition end
 abstract type AbstractOutputRequest end
 
-type Mesh
+mutable struct Mesh
     nodes :: Dict{Int, Vector{Float64}}
     node_sets :: Dict{String, Vector{Integer}}
     elements :: Dict{Int, Vector{Int}}
@@ -28,7 +28,7 @@ function Mesh(d::Dict{String, Dict})
                 d["surface_sets"], d["surface_types"])
 end
 
-type Model
+mutable struct Model
     path :: AbstractString
     name :: AbstractString
     mesh :: Mesh
@@ -38,34 +38,34 @@ type Model
     steps :: Vector{AbstractStep}
 end
 
-type SolidSection <: AbstractProperty
+mutable struct SolidSection <: AbstractProperty
     element_set :: Symbol
     material_name :: Symbol
 end
 
-type Material <: AbstractMaterial
+mutable struct Material <: AbstractMaterial
     name :: Symbol
     properties :: Vector{AbstractMaterialProperty}
 end
 
-type Elastic <: AbstractMaterialProperty
+mutable struct Elastic <: AbstractMaterialProperty
     E :: Float64
     nu :: Float64
 end
 
-type Step <: AbstractStep
+mutable struct Step <: AbstractStep
     kind :: Nullable{Symbol} # STATIC, ...
     boundary_conditions :: Vector{AbstractBoundaryCondition}
     output_requests :: Vector{AbstractOutputRequest}
 end
 
-type BoundaryCondition <: AbstractBoundaryCondition
+mutable struct BoundaryCondition <: AbstractBoundaryCondition
     kind :: Symbol # BOUNDARY, CLOAD, DLOAD, DSLOAD, ...
     data :: Vector
     options :: Dict
 end
 
-type OutputRequest <: AbstractOutputRequest
+mutable struct OutputRequest <: AbstractOutputRequest
     kind :: Symbol # NODE, EL, SECTION, ...
     data :: Vector
     options :: Dict
@@ -74,12 +74,12 @@ end
 
 ### Utility functions to parse ABAQUS .inp file to data model
 
-type Keyword
+mutable struct Keyword
     name :: AbstractString
     options :: Vector{Union{AbstractString, Pair}}
 end
 
-type AbaqusReaderState
+mutable struct AbaqusReaderState
     section :: Nullable{Keyword}
     material :: Nullable{AbstractMaterial}
     property :: Nullable{AbstractProperty}
