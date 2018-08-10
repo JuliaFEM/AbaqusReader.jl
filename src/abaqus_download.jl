@@ -37,7 +37,7 @@ function abaqus_download(model_name, env=ENV; dryrun=false)
               `ABAQUS_DOWNLOAD_URL`")
     end
     url = joinpath(env["ABAQUS_DOWNLOAD_URL"], model_name)
-    info("Downloading model $model_name to $fn")
+    @info("Downloading model $model_name to $fn")
     dryrun || download(url, fn)
     return fn
 end

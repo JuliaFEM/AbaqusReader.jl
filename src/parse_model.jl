@@ -1,6 +1,7 @@
 # This file is a part of JuliaFEM.
 # License is MIT: see https://github.com/JuliaFEM/AbaqusReader.jl/blob/master/LICENSE
 
+import Base.parse
 import Base: getindex, length
 
 ### Model definitions for ABAQUS data model
@@ -29,8 +30,8 @@ function Mesh(d::Dict{String, Dict})
 end
 
 mutable struct Model
-    path :: AbstractString
-    name :: AbstractString
+    path :: String
+    name :: String
     mesh :: Mesh
     materials :: Dict{Symbol, AbstractMaterial}
     properties :: Vector{AbstractProperty}
@@ -75,8 +76,8 @@ end
 ### Utility functions to parse ABAQUS .inp file to data model
 
 mutable struct Keyword
-    name :: AbstractString
-    options :: Vector{Union{AbstractString, Pair}}
+    name :: String
+    options :: Vector{Union{String, Pair}}
 end
 
 mutable struct AbaqusReaderState
@@ -84,7 +85,7 @@ mutable struct AbaqusReaderState
     material :: Nullable{AbstractMaterial}
     property :: Nullable{AbstractProperty}
     step :: Nullable{AbstractStep}
-    data :: Vector{AbstractString}
+    data :: Vector{String}
 end
 
 function get_data(state::AbaqusReaderState)
@@ -92,7 +93,7 @@ function get_data(state::AbaqusReaderState)
     for row in state.data
         row = strip(row, [' ', ','])
         col = split(row, ',')
-        col = map(parse, col)
+        col = map(Meta.parse, col)
         push!(data, col)
     end
     return data
@@ -102,7 +103,7 @@ function get_options(state::AbaqusReaderState)
     return Dict(get(state.section).options)
 end
 
-function get_option(state::AbaqusReaderState, what::AbstractString)
+function get_option(state::AbaqusReaderState, what::String)
     return get_options(state)[what]
 end
 
@@ -120,14 +121,14 @@ end
 
 function parse_keyword(line; uppercase_keyword=true)
     args = split(line, ",")
-    args = map(strip, args)
+    args = map(String, map(strip, args))
     keyword_name = strip(args[1], '*')
     if uppercase_keyword
         keyword_name = uppercase(keyword_name)
     end
     keyword = Keyword(keyword_name, [])
     for option in args[2:end]
-        pair = split(option, "=")
+        pair = map(String, split(option, "="))
         if uppercase_keyword
             pair[1] = uppercase(pair[1])
         end
@@ -159,12 +160,12 @@ function maybe_close_section!(model, state)
     global close_section!
     isnull(state.section) && return
     section_name = get(state.section).name
-    info("Close section: $section_name")
+    @info("Close section: $section_name")
     args = Tuple{Model, AbaqusReaderState, Type{Val{Symbol(section_name)}}}
-    if method_exists(close_section!, args)
+    if hasmethod(close_section!, args)
         close_section!(model, state, Val{Symbol(section_name)})
     else
-        warn("no close_section! found for $section_name")
+        @warn("no close_section! found for $section_name")
     end
     state.section = nothing
 end
@@ -173,12 +174,12 @@ function maybe_open_section!(model, state)
     global open_section!
     section_name = get(state.section).name
     section_options = get(state.section).options
-    info("New section: $section_name with options $section_options")
+    @info("New section: $section_name with options $section_options")
     args = Tuple{Model, AbaqusReaderState, Type{Val{Symbol(section_name)}}}
-    if method_exists(open_section!, args)
+    if hasmethod(open_section!, args)
         open_section!(model, state, Val{Symbol(section_name)})
     else
-        warn("no open_section! found for $section_name")
+        @warn("no open_section! found for $section_name")
     end
 end
 
@@ -191,11 +192,11 @@ end
 
 function process_line!(model, state, line::String)
     if isnull(state.section)
-        info("section = nothing! line = $line")
+        @info("section = nothing! line = $line")
         return
     end
     if is_keyword(line)
-        warn("missing keyword? line = $line")
+        @warn("missing keyword? line = $line")
         # close section, this is probably keyword and collecting data should stop.
         maybe_close_section!(model, state)
         return
@@ -268,8 +269,8 @@ const OUTPUT_REQUESTS = Union{NODE_PRINT, EL_PRINT, SECTION_PRINT}
 ## Properties
 
 function open_section!(model, state, ::SOLID_SECTION)
-    element_set = get_option(state, "ELSET")
-    material_name = get_option(state, "MATERIAL")
+    element_set = Symbol(get_option(state, "ELSET"))
+    material_name = Symbol(get_option(state, "MATERIAL"))
     property = SolidSection(element_set, material_name)
     state.property = property
     push!(model.properties, property)
@@ -337,10 +338,10 @@ end
 
 function close_section!(model, state, ::OUTPUT_REQUESTS)
     name = model.name
-    kind, target = map(parse, split(get(state.section).name, " "))
+    kind, target = map(Meta.parse, split(get(state.section).name, " "))
     data = get_data(state)
     options = get_options(state)
-    request = OutputRequest(kind, data, options, target)
+    request = OutputRequest(Symbol(kind), data, options, Symbol(target))
     step_ = get(state.step)
     push!(step_.output_requests, request)
 end

@@ -1,8 +1,6 @@
 # This file is a part of JuliaFEM.
 # License is MIT: see https://github.com/JuliaFEM/AbaqusReader.jl/blob/master/LICENSE
 
-using Base.Test
-
 using AbaqusReader: element_has_type, element_has_nodes, parse_abaqus,
                     parse_section, abaqus_read_mesh
 
@@ -38,6 +36,7 @@ end
     @test model["elements"][1] == [243, 240, 191, 117, 245, 242, 244, 1, 2, 196]
     @test model["elements"][2]== [204, 199, 175, 130, 207, 208, 209, 3, 4, 176]
 end
+
 
 @testset "parse cube_tet4.inp mesh" begin
     fn = joinpath(datadir, "cube_tet4.inp")
