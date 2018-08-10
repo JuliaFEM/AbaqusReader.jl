@@ -32,3 +32,16 @@ julia> model = abaqus_read_model("abaqus_file.inp")
 ```
 
 This returns `AbaqusReader.Model` instance.
+
+## Supported elements
+
+- C3D4
+- C3D8
+- C3D10
+- C3D20
+- C3D20E
+- S3
+- STRI65
+- CPS4
+- T2D2
+- T3D2
