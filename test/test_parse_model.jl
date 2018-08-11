@@ -1,8 +1,6 @@
 # This file is a part of JuliaFEM.
 # License is MIT: see https://github.com/JuliaFEM/AbaqusReader.jl/blob/master/LICENSE
 
-using Base.Test
-
 using AbaqusReader: abaqus_read_model
 using AbaqusReader: parse_keyword
 

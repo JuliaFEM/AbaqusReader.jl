@@ -1,6 +1,8 @@
 # This file is a part of JuliaFEM.
 # License is MIT: see https://github.com/JuliaFEM/AbaqusReader.jl/blob/master/LICENSE
 
+import Base.parse
+
 # Define element type and number of nodes in element
 element_has_nodes(::Type{Val{:C3D4}}) = 4
 element_has_type( ::Type{Val{:C3D4}}) = :Tet4
@@ -42,7 +44,8 @@ end
 """Match words from both sides of '=' character
 """
 function matchset(definition)
-    matchall(r"([\w\_\-]+[ ]*=[ ]*[\w\_\-]+)", definition)
+    regexp = r"([\w\_\-]+[ ]*=[ ]*[\w\_\-]+)"
+    collect(m.match for m = eachmatch(regexp, definition))
 end
 
 """Parse string to get set type and name
@@ -61,8 +64,9 @@ end
 """Parse all the numbers from string
 """
 function parse_numbers(line, type_)
-    m = matchall(r"[0-9]+", line)
-    map(x-> parse(type_, x), m)
+    regexp = r"[0-9]+"
+    matches = collect((m.match for m = eachmatch(regexp, line)))
+    map(x-> Base.parse(type_, x), matches)
 end
 
 """Add set to model, if set exists
@@ -71,7 +75,7 @@ function add_set!(model, definition, model_key, abaqus_key, ids)
     has_set_def = parse_definition(definition)
     if length(has_set_def) != 0
         set_name = has_set_def[abaqus_key]
-        info("Adding $abaqus_key: $set_name")
+        @info("Adding $abaqus_key: $set_name")
         model[model_key][set_name] = ids
     end
 end
@@ -84,15 +88,15 @@ function parse_section(model, lines, ::Symbol, idx_start, idx_end, ::Type{Val{:N
     definition = lines[idx_start]
     for line in lines[idx_start + 1: idx_end]
         if !(empty_or_comment_line(line))
-            m = matchall(r"[-0-9.eE+]+", line)
+            m = collect((m.match for m = eachmatch(r"[-0-9.eE+]+", line)))
             node_id = parse(Int, m[1])
-            coords = float(m[2:end])
+            coords = parse.(Float64, m[2:end])
             model["nodes"][node_id] = coords
             push!(ids, node_id)
             nnodes += 1
         end
     end
-    info("$nnodes nodes found")
+    @info("$nnodes nodes found")
     add_set!(model, definition, "node_sets", "nset", ids)
 end
 
@@ -133,7 +137,7 @@ function parse_section(model, lines, ::Symbol, idx_start, idx_end, ::Type{Val{:E
     eltype_sym = Symbol(element_type)
     eltype_nodes = element_has_nodes(Val{eltype_sym})
     element_type = element_has_type(Val{eltype_sym})
-    info("Parsing elements. Type: $(element_type)")
+    @info("Parsing elements. Type: $(element_type)")
     list_iterator = consumeList(lines, idx_start+1, idx_end)
     line = list_iterator()
     while line != nothing
@@ -161,12 +165,13 @@ end
 function parse_section(model, lines, key, idx_start, idx_end, ::Union{Type{Val{:NSET}},
         Type{Val{:ELSET}}})
     data = Integer[]
-    set_regex_string = Dict(:NSET  => r"NSET=([\w\-\_]+)", :ELSET => r"ELSET=([\w\-\_]+)" )
+    set_regex_string = Dict(:NSET  => r"NSET=([\w\-\_]+)",
+                            :ELSET => r"ELSET=([\w\-\_]+)" )
     selected_set = key == :NSET ? "node_sets" : "element_sets"
     definition = lines[idx_start]
     regex_string = set_regex_string[key]
     set_name = regex_match(regex_string, definition, 1)
-    info("Creating $(lowercase(string(key))) $set_name")
+    @info("Creating $(lowercase(string(key))) $set_name")
 
     if endswith(strip(definition), "GENERATE")
         line = lines[idx_start + 1]
@@ -202,7 +207,7 @@ function parse_section(model, lines, ::Symbol, idx_start, idx_end, ::Type{Val{:S
         element_side = Symbol(m[:element_side])
         push!(data, (element_id, element_side))
     end
-    model["surface_types"][set_name] = set_type
+    model["surface_types"][set_name] = Symbol(set_type)
     model["surface_sets"][set_name] = data
     return
 end
@@ -246,10 +251,10 @@ function parse_abaqus(fid::IOStream)
         keyword = strip(regex_match(r"\s*([\w ]+)", keyword_line, 1))
         k_sym = Symbol(keyword)
         args = Tuple{Dict, Vector{Int}, Symbol, Int, Int, Type{Val{k_sym}}}
-        if method_exists(parse_section, args)
+        if hasmethod(parse_section, args)
             parse_section(model, lines, k_sym, idx_start, idx_end-1, Val{k_sym})
         else
-            warn("Unknown section: '$(keyword)'")
+            @warn("Unknown section: '$(keyword)'")
         end
         idx_start = idx_end
     end

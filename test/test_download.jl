@@ -2,10 +2,9 @@
 # License is MIT: see https://github.com/JuliaFEM/AbaqusReader.jl/blob/master/LICENSE
 
 using AbaqusReader
-using Base.Test
 
 @testset "test abaqus_download" begin
-    ENV_ = similar(ENV)
+    ENV_ = empty(ENV)
     fn = tempname()
     touch(fn)
     model_name = basename(fn)
