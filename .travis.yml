@@ -1,18 +1,16 @@
 language: julia
+
 os:
     - linux
+
 julia:
     - 0.7
     - 1.0
     - nightly
-matrix:
-    allow_failures:
-        - julia: 1.0
-        - julia: nightly
-before_script:
-    - julia --color=yes -e 'using Pkg; Pkg.clone("https://github.com/JuliaFEM/PkgTestSuite.jl.git")'
-    - julia --color=yes -e 'using PkgTestSuite; init()'
-script:
-    - julia --color=yes -e 'using PkgTestSuite; test()'
+
+#matrix:
+#    allow_failures:
+#        - julia: nightly
+
 after_success:
-    - julia --color=yes -e 'using PkgTestSuite; deploy()'
+    - julia -e 'cd(Pkg.dir("AbaqusReader")); Pkg.add("Coverage"); using Coverage; Coveralls.submit(Coveralls.process_folder())'
