@@ -30,6 +30,9 @@ element_has_type(::Type{Val{:T2D2}}) = :Seg2
 element_has_nodes(::Type{Val{:T3D2}}) = 2
 element_has_type(::Type{Val{:T3D2}}) = :Seg2
 
+element_has_nodes(::Type{Val{:B33}}) = 2
+element_has_type(::Type{Val{:B33}}) = :Seg2
+
 """Checks for a comment or empty line
 
 Function return true, if line starts with comment character "**"
@@ -69,7 +72,7 @@ end
 """
 function add_set!(model, definition, model_key, abaqus_key, ids)
     has_set_def = parse_definition(definition)
-    if length(has_set_def) != 0
+    if haskey(has_set_def, "elset")
         set_name = has_set_def[abaqus_key]
         info("Adding $abaqus_key: $set_name")
         model[model_key][set_name] = ids
@@ -129,11 +132,14 @@ If elset definition exists, also adds the set to model.
 function parse_section(model, lines, ::Symbol, idx_start, idx_end, ::Type{Val{:ELEMENT}})
     ids = Integer[]
     definition = lines[idx_start]
-    element_type = regex_match(r"TYPE=([\w\-\_]+)", definition, 1)
+    regexp = r"TYPE=([\w\-\_]+)"i
+    m = match(regexp, definition)
+    m == nothing && error("Could not match regexp $regexp to line $definition")
+    element_type = m[1]
     eltype_sym = Symbol(element_type)
     eltype_nodes = element_has_nodes(Val{eltype_sym})
     element_type = element_has_type(Val{eltype_sym})
-    info("Parsing elements. Type: $(element_type)")
+    info("Parsing elements. Type: $(m[1]). Topology: $(element_type)")
     list_iterator = consumeList(lines, idx_start+1, idx_end)
     line = list_iterator()
     while line != nothing
