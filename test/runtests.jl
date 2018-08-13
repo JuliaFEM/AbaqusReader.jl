@@ -12,6 +12,7 @@ include("../docs/make.jl")
     @testset "test_create_surface_elements" begin include("test_create_surface_elements.jl") end
     @testset "test_download" begin include("test_download.jl") end
     @testset "test_parse_t2d2" begin include("test_parse_t2d2.jl") end
+    @testset "test_parse_beams" begin include("test_parse_beams.jl") end
 end
 
 include("../docs/deploy.jl")
