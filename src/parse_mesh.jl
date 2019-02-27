@@ -7,6 +7,9 @@ import Base.parse
 element_has_nodes(::Type{Val{:C3D4}}) = 4
 element_has_type( ::Type{Val{:C3D4}}) = :Tet4
 
+element_has_nodes(::Type{Val{:C3D4H}}) = 4
+element_has_type( ::Type{Val{:C3D4H}}) = :Tet4
+
 element_has_nodes(::Type{Val{:C3D8}}) = 8
 element_has_type( ::Type{Val{:C3D8}}) = :Hex8
 
