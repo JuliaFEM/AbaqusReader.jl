@@ -146,7 +146,7 @@ function parse_section(model, lines, ::Symbol, idx_start, idx_end, ::Type{Val{:E
     regexp = r"TYPE=([\w\-\_]+)"i
     m = match(regexp, definition)
     m == nothing && error("Could not match regexp $regexp to line $definition")
-    element_type = m[1]
+    element_type = uppercase(m[1])
     eltype_sym = Symbol(element_type)
     eltype_nodes = element_has_nodes(Val{eltype_sym})
     element_type = element_has_type(Val{eltype_sym})
@@ -178,8 +178,8 @@ end
 function parse_section(model, lines, key, idx_start, idx_end, ::Union{Type{Val{:NSET}},
         Type{Val{:ELSET}}})
     data = Integer[]
-    set_regex_string = Dict(:NSET  => r"NSET=([\w\-\_]+)",
-                            :ELSET => r"ELSET=([\w\-\_]+)" )
+    set_regex_string = Dict(:NSET  => r"NSET=([\w\-\_]+)"i,
+                            :ELSET => r"ELSET=([\w\-\_]+)"i)
     selected_set = key == :NSET ? "node_sets" : "element_sets"
     definition = lines[idx_start]
     regex_string = set_regex_string[key]
