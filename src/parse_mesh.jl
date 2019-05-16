@@ -7,11 +7,17 @@ import Base.parse
 element_has_nodes(::Type{Val{:C3D4}}) = 4
 element_has_type( ::Type{Val{:C3D4}}) = :Tet4
 
+element_has_nodes(::Type{Val{:C3D4H}}) = 4
+element_has_type( ::Type{Val{:C3D4H}}) = :Tet4
+
 element_has_nodes(::Type{Val{:C3D8}}) = 8
 element_has_type( ::Type{Val{:C3D8}}) = :Hex8
 
 element_has_nodes(::Type{Val{:C3D10}}) = 10
 element_has_type(::Type{Val{:C3D10}}) = :Tet10
+
+element_has_nodes(::Type{Val{:C3D10H}}) = 10
+element_has_type(::Type{Val{:C3D10H}}) = :Tet10
 
 element_has_nodes(::Type{Val{:C3D20}}) = 20
 element_has_type(::Type{Val{:C3D20}}) = :Hex20
