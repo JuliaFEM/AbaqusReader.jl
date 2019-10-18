@@ -7,5 +7,8 @@ makedocs(modules=[AbaqusReader],
          format = Documenter.HTML(),
          checkdocs = :all,
          sitename = "AbaqusReader.jl",
-         pages = ["index.md"]
+         pages = [
+                  "Home" => "index.md",
+                  "API" => "api.md",
+                ]
         )
