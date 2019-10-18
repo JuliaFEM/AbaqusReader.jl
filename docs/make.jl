@@ -4,7 +4,7 @@
 using Documenter, AbaqusReader
 
 makedocs(modules=[AbaqusReader],
-         format = :html,
+         format = Documenter.HTML(),
          checkdocs = :all,
          sitename = "AbaqusReader.jl",
          pages = ["index.md"]
