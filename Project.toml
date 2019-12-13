@@ -1,0 +1,17 @@
+name = "AbaqusReader"
+uuid = "bc6b9049-e460-56d6-94b4-a597b2c0390d"
+authors = ["Jukka Aho <ahojukka5@gmail.com>"]
+version = "0.2.3"
+
+[deps]
+Nullables = "4d1e1d77-625e-5b40-9113-a560ec7a8ecd"
+
+[compat]
+julia = "1"
+Nullables = "1"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
