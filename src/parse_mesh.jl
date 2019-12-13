@@ -186,7 +186,7 @@ function parse_section(model, lines, key, idx_start, idx_end, ::Union{Type{Val{:
     set_name = regex_match(regex_string, definition, 1)
     @info("Creating $(lowercase(string(key))) $set_name")
 
-    if endswith(strip(definition), "GENERATE")
+    if endswith(strip(uppercase(definition)), "GENERATE")
         line = lines[idx_start + 1]
         first_id, last_id, step_ = parse_numbers(line, Int)
         set_ids = collect(first_id:step_:last_id)
