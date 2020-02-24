@@ -25,11 +25,11 @@ end
     3,         4,       176
     """
     data = split(data, "\n")
-    model = Dict{AbstractString, Any}()
-    model["node_sets"] = Dict{AbstractString, Vector{Int}}()
-    model["elements"] = Dict{Integer, Vector{Integer}}()
-    model["element_sets"] = Dict{AbstractString, Vector{Int}}()
-    model["element_types"] = Dict{Integer, Symbol}()
+    model = Dict{String, Any}()
+    model["node_sets"] = Dict{String, Vector{Int}}()
+    model["elements"] = Dict{Int, Vector{Int}}()
+    model["element_sets"] = Dict{String, Vector{Int}}()
+    model["element_types"] = Dict{Int, Symbol}()
     parse_section(model, data, :ELEMENT, 1, 5, Val{:ELEMENT})
     @test length(model["elements"]) == 2
     @test model["element_sets"]["BEAM"] == [1, 2]
@@ -98,7 +98,7 @@ end
 
 @testset "parse ELSET" begin
     lines = ["*ELSET, ELSET=TEST1", "1"]
-    mesh = Dict("element_sets" => Dict{String, Vector{Int64}}())
+    mesh = Dict("element_sets" => Dict{String, Vector{Int}}())
     parse_section(mesh, lines, :ELSET, 1, 2, Val{:ELSET})
     @test mesh["element_sets"]["TEST1"] == [1]
 end

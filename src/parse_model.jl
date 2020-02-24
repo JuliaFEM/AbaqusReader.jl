@@ -15,10 +15,10 @@ abstract type AbstractOutputRequest end
 
 mutable struct Mesh
     nodes :: Dict{Int, Vector{Float64}}
-    node_sets :: Dict{String, Vector{Integer}}
+    node_sets :: Dict{String, Vector{Int}}
     elements :: Dict{Int, Vector{Int}}
     element_types :: Dict{Int, Symbol}
-    element_sets :: Dict{String, Vector{Integer}}
+    element_sets :: Dict{String, Vector{Int}}
     surface_sets :: Dict{String, Vector{Tuple{Int, Symbol}}}
     surface_types :: Dict{String, Symbol}
 end

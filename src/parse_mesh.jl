@@ -94,7 +94,7 @@ end
 """
 function parse_section(model, lines, ::Symbol, idx_start, idx_end, ::Type{Val{:NODE}})
     nnodes = 0
-    ids = Integer[]
+    ids = Int[]
     definition = lines[idx_start]
     for line in lines[idx_start + 1: idx_end]
         if !(empty_or_comment_line(line))
@@ -141,7 +141,7 @@ Reads element ids and their connectivity nodes from input lines.
 If elset definition exists, also adds the set to model.
 """
 function parse_section(model, lines, ::Symbol, idx_start, idx_end, ::Type{Val{:ELEMENT}})
-    ids = Integer[]
+    ids = Int[]
     definition = lines[idx_start]
     regexp = r"TYPE=([\w\-\_]+)"i
     m = match(regexp, definition)
@@ -177,7 +177,7 @@ end
 """
 function parse_section(model, lines, key, idx_start, idx_end, ::Union{Type{Val{:NSET}},
         Type{Val{:ELSET}}})
-    data = Integer[]
+    data = Int[]
     set_regex_string = Dict(:NSET  => r"NSET=([\w\-\_]+)"i,
                             :ELSET => r"ELSET=([\w\-\_]+)"i)
     selected_set = key == :NSET ? "node_sets" : "element_sets"
@@ -194,7 +194,7 @@ function parse_section(model, lines, key, idx_start, idx_end, ::Union{Type{Val{:
     else
         for line in lines[idx_start + 1: idx_end]
             if !(empty_or_comment_line(line))
-                set_ids = parse_numbers(line, Int)
+                set_ids = parse_numbers(line, Int)::Vector{Int}
                 push!(data, set_ids...)
             end
         end
@@ -205,7 +205,7 @@ end
 """Parse SURFACE keyword
 """
 function parse_section(model, lines, ::Symbol, idx_start, idx_end, ::Type{Val{:SURFACE}})
-    data = Vector{Tuple{Int64, Symbol}}()
+    data = Vector{Tuple{Int, Symbol}}()
     definition = lines[idx_start]
 
     has_set_def = parse_definition(definition)
@@ -228,7 +228,7 @@ end
 """Find lines, which contain keywords, for example "*NODE"
 """
 function find_keywords(lines)
-    indexes = Integer[]
+    indexes = Int[]
     for (idx, line) in enumerate(lines)
         if startswith(line, "*") && !startswith(line, "**")
             push!(indexes, idx)
@@ -244,12 +244,12 @@ all the available keywords.
 """
 function parse_abaqus(fid::IOStream)
     model = Dict{String, Dict}()
-    model["nodes"] = Dict{Int64, Vector{Float64}}()
-    model["node_sets"] = Dict{String, Vector{Int64}}()
-    model["elements"] = Dict{Integer, Vector{Integer}}()
-    model["element_types"] = Dict{Integer, Symbol}()
-    model["element_sets"] = Dict{String, Vector{Int64}}()
-    model["surface_sets"] = Dict{String, Vector{Tuple{Int64, Symbol}}}()
+    model["nodes"] = Dict{Int, Vector{Float64}}()
+    model["node_sets"] = Dict{String, Vector{Int}}()
+    model["elements"] = Dict{Int, Vector{Int}}()
+    model["element_types"] = Dict{Int, Symbol}()
+    model["element_sets"] = Dict{String, Vector{Int}}()
+    model["surface_sets"] = Dict{String, Vector{Tuple{Int, Symbol}}}()
     model["surface_types"] = Dict{String, Symbol}()
     keyword_sym::Symbol = :none
 
