@@ -30,7 +30,7 @@ const element_mapping = Dict(
 element. E.g. for Tet4 we have 4 sides S1..S4 and boundary element is of type Tri3.
 """
 function create_surface_element(element_type::Symbol, element_side::Symbol,
-    element_connectivity::Vector{Int64})
+    element_connectivity::Vector{Int})
 
     if !haskey(element_mapping, element_type)
         error("Unable to find surface element for element of type ",
@@ -59,7 +59,7 @@ function create_surface_elements(mesh::Dict, surface_name::String)
     surface = mesh["surface_sets"][surface_name]
     elements = mesh["elements"]
     eltypes = mesh["element_types"]
-    result = Tuple{Symbol, Vector{Integer}}[]
+    result = Tuple{Symbol, Vector{Int}}[]
     for (elid, side) in surface
         surface_element = create_surface_element(eltypes[elid], side, elements[elid])
         push!(result, surface_element)
