@@ -73,7 +73,7 @@ end
 
 """Parse all the numbers from string
 """
-function parse_numbers(line, type_)
+function parse_numbers(line, type_::Type{T})::Vector{T} where T
     regexp = r"[0-9]+"
     matches = collect((m.match for m = eachmatch(regexp, line)))
     map(x-> Base.parse(type_, x), matches)
