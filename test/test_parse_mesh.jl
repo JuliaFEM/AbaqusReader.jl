@@ -127,12 +127,12 @@ end
     model = Dict{String, Any}()
     model["node_sets"]    = Dict{String, Vector{Int}}()
     model["element_sets"] = Dict{String, Vector{Int}}()
-    @test AbaqusReader.parse_section(model, data, :NSET, 1, 2, Val{:NSET}) == [1,2,3]
-    @test AbaqusReader.parse_section(model, data, :NSET, 3, 4, Val{:NSET}) == [3,4,5]
-    @test_throws ErrorException AbaqusReader.parse_section(model, data, :NSET, 5, 6, Val{:NSET})
+    @test parse_section(model, data, :NSET, 1, 2, Val{:NSET}) == [1,2,3]
+    @test parse_section(model, data, :NSET, 3, 4, Val{:NSET}) == [3,4,5]
+    @test_throws ErrorException parse_section(model, data, :NSET, 5, 6, Val{:NSET})
     @test keys(model["node_sets"]) == Set(["Without", "With quotes"])
-    @test AbaqusReader.parse_section(model, data, :ELSET, 7, 8, Val{:ELSET}) == [1,2,3]
-    @test AbaqusReader.parse_section(model, data, :ELSET, 9, 10, Val{:ELSET}) == [3,4,5]
-    @test_throws ErrorException AbaqusReader.parse_section(model, data, :ELSET, 11, 12, Val{:NSET})
+    @test parse_section(model, data, :ELSET, 7, 8, Val{:ELSET}) == [1,2,3]
+    @test parse_section(model, data, :ELSET, 9, 10, Val{:ELSET}) == [3,4,5]
+    @test_throws ErrorException parse_section(model, data, :ELSET, 11, 12, Val{:NSET})
     @test keys(model["element_sets"]) == Set(["Without", "With quotes"])
 end
