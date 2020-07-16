@@ -108,3 +108,31 @@ end
     mesh = abaqus_read_mesh(fn)
     @test length(mesh["nodes"]) == 116
 end
+
+@testset "Set names" begin
+    data = """*Nset, nset=Without quotes
+    1,2,3
+    *Nset, nset="With quotes"
+    3,4,5
+    *Nset, nset="With wrong quotes
+    1,2,3
+    *Elset, elset=Without quotes
+    1,2,3
+    *Elset, elset="With quotes"
+    3,4,5
+    *Elset, elset="With wrong quotes
+    1,2,3
+    """
+    data = split(data, "\n")
+    model = Dict{String, Any}()
+    model["node_sets"]    = Dict{String, Vector{Int}}()
+    model["element_sets"] = Dict{String, Vector{Int}}()
+    @test parse_section(model, data, :NSET, 1, 2, Val{:NSET}) == [1,2,3]
+    @test parse_section(model, data, :NSET, 3, 4, Val{:NSET}) == [3,4,5]
+    @test_throws ErrorException parse_section(model, data, :NSET, 5, 6, Val{:NSET})
+    @test keys(model["node_sets"]) == Set(["Without", "With quotes"])
+    @test parse_section(model, data, :ELSET, 7, 8, Val{:ELSET}) == [1,2,3]
+    @test parse_section(model, data, :ELSET, 9, 10, Val{:ELSET}) == [3,4,5]
+    @test_throws ErrorException parse_section(model, data, :ELSET, 11, 12, Val{:NSET})
+    @test keys(model["element_sets"]) == Set(["Without", "With quotes"])
+end
