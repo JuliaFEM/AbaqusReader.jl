@@ -85,7 +85,7 @@ function add_set!(model, definition, model_key, abaqus_key, ids)
     has_set_def = parse_definition(definition)
     if haskey(has_set_def, "elset")
         set_name = has_set_def[abaqus_key]
-        @info("Adding $abaqus_key: $set_name")
+        @debug("Adding $abaqus_key: $set_name")
         model[model_key][set_name] = ids
     end
 end
@@ -106,7 +106,7 @@ function parse_section(model, lines, ::Symbol, idx_start, idx_end, ::Type{Val{:N
             nnodes += 1
         end
     end
-    @info("$nnodes nodes found")
+    @debug("$nnodes nodes found")
     add_set!(model, definition, "node_sets", "nset", ids)
 end
 
@@ -150,7 +150,7 @@ function parse_section(model, lines, ::Symbol, idx_start, idx_end, ::Type{Val{:E
     eltype_sym = Symbol(element_type)
     eltype_nodes = element_has_nodes(Val{eltype_sym})
     element_type = element_has_type(Val{eltype_sym})
-    @info("Parsing elements. Type: $(m[1]). Topology: $(element_type)")
+    @debug("Parsing elements. Type: $(m[1]). Topology: $(element_type)")
     list_iterator = consumeList(lines, idx_start+1, idx_end)
     line = list_iterator()
     while line != nothing
@@ -184,7 +184,7 @@ function parse_section(model, lines, key, idx_start, idx_end, ::Union{Type{Val{:
     definition = lines[idx_start]
     regex_string = set_regex_string[key]
     set_name = regex_match(regex_string, definition, 1)
-    @info("Creating $(lowercase(string(key))) $set_name")
+    @debug("Creating $(lowercase(string(key))) $set_name")
 
     if endswith(strip(uppercase(definition)), "GENERATE")
         line = lines[idx_start + 1]
