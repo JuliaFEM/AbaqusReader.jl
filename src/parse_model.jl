@@ -160,12 +160,12 @@ function maybe_close_section!(model, state)
     global close_section!
     isnull(state.section) && return
     section_name = get(state.section).name
-    @info("Close section: $section_name")
+    @debug("Close section: $section_name")
     args = Tuple{Model, AbaqusReaderState, Type{Val{Symbol(section_name)}}}
     if hasmethod(close_section!, args)
         close_section!(model, state, Val{Symbol(section_name)})
     else
-        @warn("no close_section! found for $section_name")
+        @debug("no close_section! found for $section_name")
     end
     state.section = nothing
 end
@@ -174,7 +174,7 @@ function maybe_open_section!(model, state)
     global open_section!
     section_name = get(state.section).name
     section_options = get(state.section).options
-    @info("New section: $section_name with options $section_options")
+    @debug("New section: $section_name with options $section_options")
     args = Tuple{Model, AbaqusReaderState, Type{Val{Symbol(section_name)}}}
     if hasmethod(open_section!, args)
         open_section!(model, state, Val{Symbol(section_name)})
@@ -192,7 +192,7 @@ end
 
 function process_line!(model, state, line::String)
     if isnull(state.section)
-        @info("section = nothing! line = $line")
+        @debug("section = nothing! line = $line")
         return
     end
     if is_keyword(line)
