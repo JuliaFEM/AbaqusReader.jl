@@ -1,17 +1,24 @@
-# AbaqusReader.jl
+# AbaqusReader.jl - parse ABAQUS mesh files to Julia
 
-[![Build Status](https://travis-ci.org/JuliaFEM/AbaqusReader.jl.svg?branch=master)](https://travis-ci.org/JuliaFEM/AbaqusReader.jl)[![Coverage Status](https://coveralls.io/repos/github/JuliaFEM/AbaqusReader.jl/badge.svg?branch=master)](https://coveralls.io/github/JuliaFEM/AbaqusReader.jl?branch=master)[![](https://img.shields.io/badge/docs-stable-blue.svg)](https://juliafem.github.io/AbaqusReader.jl/stable)[![](https://img.shields.io/badge/docs-latest-blue.svg)](https://juliafem.github.io/AbaqusReader.jl/latest)
+[![ci][ci-img]][ci-url]
+[![codecov][coverage-img]][coverage-url]
+[![docs-stable][docs-stable-img]][docs-stable-url]
+[![docs-dev][docs-dev-img]][docs-dev-url]
 
-AbaqusReader.jl can be used to parse ABAQUS .inp file format. Two functions is exported:
-`abaqus_read_mesh(filename::String)` can be used to parse mesh to simple Dict-based structure.
-With function `abaqus_read_model(filename::String)` it's also possible to parse more information
-from model, like boundary conditions and steps.
+AbaqusReader.jl can be used to parse ABAQUS .inp file format. Two functions is
+exported: `abaqus_read_mesh(filename::String)` can be used to parse mesh to
+simple Dict-based structure. With function `abaqus_read_model(filename::String)`
+it's also possible to parse more information from model, like boundary
+conditions and steps.
 
 Reading mesh is made simple:
+
+```julia
+using AbaqusReader
+abaqus_read_mesh("cube_tet4.inp")
 ```
-julia> using AbaqusReader
-julia> filename = Pkg.dir("AbaqusReader", "test", "test_parse_mesh", "cube_tet4.inp")
-julia> mesh = abaqus_read_mesh(filename)
+
+```text
 Dict{String,Dict} with 7 entries:
   "nodes"         => Dict(7=>[0.0, 10.0, 10.0],4=>[10.0, 0.0, 0.0],9=>[10.0, 10…
   "element_sets"  => Dict("CUBE"=>[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 1…
@@ -24,11 +31,13 @@ Dict{String,Dict} with 7 entries:
 
 Like said, `mesh` is a simple dictionary containing other dictionaries like
 `elements`, `nodes`, `element_sets` and so on. This is a good  starting point to
-construct own finite element implementations based on real models done using ABAQUS.
+construct own finite element implementations based on real models done using
+ABAQUS.
 
 If boundary conditions are also requested, `abaqus_read_model` must be used:
-```
-julia> model = abaqus_read_model("abaqus_file.inp")
+
+```julia
+model = abaqus_read_model("abaqus_file.inp")
 ```
 
 This returns `AbaqusReader.Model` instance.
@@ -45,3 +54,15 @@ This returns `AbaqusReader.Model` instance.
 - CPS4
 - T2D2
 - T3D2
+
+[ci-img]: https://github.com/JuliaFEM/AbaqusReader.jl/workflows/CI/badge.svg
+[ci-url]: https://github.com/JuliaFEM/AbaqusReader.jl/actions?query=workflow%3ACI+branch%3Amaster
+
+[coverage-img]: https://codecov.io/gh/JuliaFEM/AbaqusReader.jl/branch/master/graph/badge.svg?token=3aZGJjDsY9
+[coverage-url]: https://codecov.io/gh/JuliaFEM/AbaqusReader.jl
+
+[docs-stable-img]: https://img.shields.io/badge/docs-stable-blue.svg
+[docs-stable-url]: https://juliafem.github.io/AbaqusReader.jl/stable
+
+[docs-dev-img]: https://img.shields.io/badge/docs-latest-blue.svg
+[docs-dev-url]: https://juliafem.github.io/AbaqusReader.jl/latest
