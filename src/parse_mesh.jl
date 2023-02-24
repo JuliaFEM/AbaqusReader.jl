@@ -7,6 +7,9 @@ import Base.parse
 element_has_nodes(::Type{Val{:C3D4}}) = 4
 element_has_type( ::Type{Val{:C3D4}}) = :Tet4
 
+element_has_nodes(::Type{Val{:C3D6}}) = 6
+element_has_type( ::Type{Val{:C3D6}}) = :Wedge6
+
 element_has_nodes(::Type{Val{:C3D4H}}) = 4
 element_has_type( ::Type{Val{:C3D4H}}) = :Tet4
 
@@ -26,6 +29,9 @@ element_has_nodes(::Type{Val{:C3D20E}}) = 20
 
 element_has_nodes(::Type{Val{:S3}}) = 3
 element_has_type( ::Type{Val{:S3}}) = :Tri3
+
+element_has_nodes(::Type{Val{:CPS3}}) = 3
+element_has_type( ::Type{Val{:CPS3}}) = :CPS3
 
 element_has_nodes(::Type{Val{:STRI65}}) = 6
 element_has_type(::Type{Val{:STRI65}}) = :Tri6
