@@ -53,7 +53,7 @@ The following abaqus elements are supported, along with the corresponding number
 | C3D8    | 8  |`:Hex8`  |
 | C3D10   | 10 |`:Tet10` |
 | C3D20   | 20 |`:Hex20` |
-| C3D20E  | 20 |         |
+| C3D20E  | 20 |`:Hex20` |
 | S3      | 3  |`:Tri3`  |
 | STRI65  | 6  |`:Tri6`  |
 | CPS4    | 4  |`:Quad4` |
