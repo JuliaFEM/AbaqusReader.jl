@@ -46,7 +46,7 @@ This returns `AbaqusReader.Model` instance.
 The following abaqus elements are supported, along with the corresponding number of nodes and the `elemen_types` key
 
 |abaqus element| number of nodes| element_types|
-|---------|----|---------|
+|---------|:--:|---------|
 | C3D4    | 4  |`:Tet4`  | 
 | C3D4H   | 4  |`:Tet4`  | 
 | C3D6    | 6  |`:Wedge6`| 
