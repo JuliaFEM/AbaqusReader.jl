@@ -2,6 +2,7 @@
 # License is MIT: see https://github.com/JuliaFEM/AbaqusReader.jl/blob/master/LICENSE
 
 import Base.parse
+using Logging
 
 # Define element type and number of nodes in element
 element_has_nodes(::Type{Val{:C3D4}}) = 4
@@ -296,6 +297,10 @@ Read ABAQUS mesh from file `fn`. Returns a dict with elements, nodes,
 element sets, node sets and other topologically imporant things, but
 not the actual model with boundary conditions, load steps and so on.
 """
-function abaqus_read_mesh(fn::String)
+function abaqus_read_mesh(fn::String; kwargs...)
+    verbose = get(kwargs, :verbose, true)
+    if !verbose
+        Logging.disable_logging(Logging.Error)
+    end
     return open(parse_abaqus, fn)
 end

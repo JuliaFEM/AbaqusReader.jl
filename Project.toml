@@ -4,11 +4,12 @@ authors = ["Jukka Aho <ahojukka5@gmail.com>"]
 version = "0.2.7"
 
 [deps]
+Logging = "56ddb016-857b-54e1-b83d-db4d58db5568"
 Nullables = "4d1e1d77-625e-5b40-9113-a560ec7a8ecd"
 
 [compat]
-julia = "1"
 Nullables = "1"
+julia = "1"
 
 [extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
