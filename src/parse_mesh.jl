@@ -258,7 +258,7 @@ end
 Function parses Abaqus input file and generates a dictionary of
 all the available keywords.
 """
-function parse_abaqus(fid::IOStream)
+function parse_abaqus(fid::IOStream, verbose::Bool)
     model = Dict{String,Dict}()
     model["nodes"] = Dict{Int,Vector{Float64}}()
     model["node_sets"] = Dict{String,Vector{Int}}()
@@ -283,7 +283,9 @@ function parse_abaqus(fid::IOStream)
         if hasmethod(parse_section, args)
             parse_section(model, lines, k_sym, idx_start, idx_end - 1, Val{k_sym})
         else
-            @warn("Unknown section: '$(keyword)'")
+            if verbose
+                @warn("Unknown section: '$(keyword)'")
+            end
         end
         idx_start = idx_end
     end
@@ -299,8 +301,5 @@ not the actual model with boundary conditions, load steps and so on.
 """
 function abaqus_read_mesh(fn::String; kwargs...)
     verbose = get(kwargs, :verbose, true)
-    if !verbose
-        Logging.disable_logging(Logging.Error)
-    end
-    return open(parse_abaqus, fn)
+    return parse_abaqus(open(fn),verbose)
 end
