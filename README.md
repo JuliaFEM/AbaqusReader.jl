@@ -43,17 +43,25 @@ model = abaqus_read_model("abaqus_file.inp")
 This returns `AbaqusReader.Model` instance.
 
 ## Supported elements
+The following abaqus elements are supported, along with the corresponding number of nodes and the `elemen_types` key
 
-- C3D4
-- C3D8
-- C3D10
-- C3D20
-- C3D20E
-- S3
-- STRI65
-- CPS4
-- T2D2
-- T3D2
+|abaqus element| number of nodes| element_types|
+|---------|:--:|---------|
+| C3D4    | 4  |`:Tet4`  | 
+| C3D4H   | 4  |`:Tet4`  | 
+| C3D6    | 6  |`:Wedge6`| 
+| C3D8    | 8  |`:Hex8`  |
+| C3D10   | 10 |`:Tet10` |
+| C3D20   | 20 |`:Hex20` |
+| C3D20E  | 20 |`:Hex20` |
+| S3      | 3  |`:Tri3`  |
+| STRI65  | 6  |`:Tri6`  |
+| CPS4    | 4  |`:Quad4` |
+| T2D2    | 2  |`:Seg2`  |
+| T3D2    | 2  |`:Seg2`  |
+| B33     | 2  |`:Seg2`  |
+
+adding new elments is very easy, just look at the first lines of `/src/parse_mesh.jl`
 
 [ci-img]: https://github.com/JuliaFEM/AbaqusReader.jl/workflows/CI/badge.svg
 [ci-url]: https://github.com/JuliaFEM/AbaqusReader.jl/actions?query=workflow%3ACI+branch%3Amaster
@@ -66,3 +74,4 @@ This returns `AbaqusReader.Model` instance.
 
 [docs-dev-img]: https://img.shields.io/badge/docs-latest-blue.svg
 [docs-dev-url]: https://juliafem.github.io/AbaqusReader.jl/latest
+
