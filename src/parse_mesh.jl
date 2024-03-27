@@ -2,19 +2,26 @@
 # License is MIT: see https://github.com/JuliaFEM/AbaqusReader.jl/blob/master/LICENSE
 
 import Base.parse
+using Logging
 
 # Define element type and number of nodes in element
 element_has_nodes(::Type{Val{:C3D4}}) = 4
-element_has_type( ::Type{Val{:C3D4}}) = :Tet4
+element_has_type(::Type{Val{:C3D4}}) = :Tet4
 
 element_has_nodes(::Type{Val{:C3D6}}) = 6
-element_has_type( ::Type{Val{:C3D6}}) = :Wedge6
+element_has_type(::Type{Val{:C3D6}}) = :Wedge6
 
 element_has_nodes(::Type{Val{:C3D4H}}) = 4
-element_has_type( ::Type{Val{:C3D4H}}) = :Tet4
+element_has_type(::Type{Val{:C3D4H}}) = :Tet4
 
 element_has_nodes(::Type{Val{:C3D8}}) = 8
-element_has_type( ::Type{Val{:C3D8}}) = :Hex8
+element_has_type(::Type{Val{:C3D8}}) = :Hex8
+
+element_has_nodes(::Type{Val{:C3D8R}}) = 8
+element_has_type(::Type{Val{:C3D8R}}) = :Hex8
+
+element_has_nodes(::Type{Val{:COH3D8}}) = 8
+element_has_type(::Type{Val{:COH3D8}}) = :Hex8
 
 element_has_nodes(::Type{Val{:C3D10}}) = 10
 element_has_type(::Type{Val{:C3D10}}) = :Tet10
@@ -28,16 +35,19 @@ element_has_type(::Type{Val{:C3D20}}) = :Hex20
 element_has_nodes(::Type{Val{:C3D20E}}) = 20
 
 element_has_nodes(::Type{Val{:S3}}) = 3
-element_has_type( ::Type{Val{:S3}}) = :Tri3
+element_has_type(::Type{Val{:S3}}) = :Tri3
 
 element_has_nodes(::Type{Val{:CPS3}}) = 3
-element_has_type( ::Type{Val{:CPS3}}) = :CPS3
+element_has_type(::Type{Val{:CPS3}}) = :CPS3
 
 element_has_nodes(::Type{Val{:STRI65}}) = 6
 element_has_type(::Type{Val{:STRI65}}) = :Tri6
 
 element_has_nodes(::Type{Val{:CPS4}}) = 4
 element_has_type(::Type{Val{:CPS4}}) = :Quad4
+
+element_has_nodes(::Type{Val{:CPS4R}}) = 4
+element_has_type(::Type{Val{:CPS4R}}) = :Quad4
 
 element_has_nodes(::Type{Val{:T2D2}}) = 2
 element_has_type(::Type{Val{:T2D2}}) = :Seg2
@@ -53,7 +63,7 @@ element_has_type(::Type{Val{:B33}}) = :Seg2
 Function return true, if line starts with comment character "**"
 or has length of 0
 """
-function empty_or_comment_line(line::T) where T<:AbstractString
+function empty_or_comment_line(line::T) where {T<:AbstractString}
     startswith(line, "**") || (length(line) == 0)
 end
 
@@ -79,10 +89,10 @@ end
 
 """Parse all the numbers from string
 """
-function parse_numbers(line, type_::Type{T})::Vector{T} where T
+function parse_numbers(line, type_::Type{T})::Vector{T} where {T}
     regexp = r"[0-9]+"
     matches = collect((m.match for m = eachmatch(regexp, line)))
-    map(x-> Base.parse(type_, x), matches)
+    map(x -> Base.parse(type_, x), matches)
 end
 
 """Add set to model, if set exists
@@ -102,7 +112,7 @@ function parse_section(model, lines, ::Symbol, idx_start, idx_end, ::Type{Val{:N
     nnodes = 0
     ids = Int[]
     definition = lines[idx_start]
-    for line in lines[idx_start + 1: idx_end]
+    for line in lines[idx_start+1:idx_end]
         if !(empty_or_comment_line(line))
             m = collect((m.match for m = eachmatch(r"[-0-9.eE+]+", line)))
             node_id = parse(Int, m[1])
@@ -157,7 +167,7 @@ function parse_section(model, lines, ::Symbol, idx_start, idx_end, ::Type{Val{:E
     eltype_nodes = element_has_nodes(Val{eltype_sym})
     element_type = element_has_type(Val{eltype_sym})
     @debug("Parsing elements. Type: $(m[1]). Topology: $(element_type)")
-    list_iterator = consumeList(lines, idx_start+1, idx_end)
+    list_iterator = consumeList(lines, idx_start + 1, idx_end)
     line = list_iterator()
     while line != nothing
         numbers = parse_numbers(line, Int)
@@ -182,10 +192,10 @@ end
 """Parse node and elementset from input lines
 """
 function parse_section(model, lines, key, idx_start, idx_end, ::Union{Type{Val{:NSET}},
-        Type{Val{:ELSET}}})
+    Type{Val{:ELSET}}})
     data = Int[]
-    set_regex_string = Dict(:NSET  => r"((?<=NSET=)([\w\-\_]+)|(?<=NSET=\")([\w\-\_\ ]+)(?=\"))"i,
-                            :ELSET => r"((?<=ELSET=)([\w\-\_]+)|(?<=ELSET=\")([\w\-\_\ ]+)(?=\"))"i)
+    set_regex_string = Dict(:NSET => r"((?<=NSET=)([\w\-\_]+)|(?<=NSET=\")([\w\-\_\ ]+)(?=\"))"i,
+        :ELSET => r"((?<=ELSET=)([\w\-\_]+)|(?<=ELSET=\")([\w\-\_\ ]+)(?=\"))"i)
     selected_set = key == :NSET ? "node_sets" : "element_sets"
     definition = lines[idx_start]
     regex_string = set_regex_string[key]
@@ -193,12 +203,12 @@ function parse_section(model, lines, key, idx_start, idx_end, ::Union{Type{Val{:
     @debug("Creating $(lowercase(string(key))) $set_name")
 
     if endswith(strip(uppercase(definition)), "GENERATE")
-        line = lines[idx_start + 1]
+        line = lines[idx_start+1]
         first_id, last_id, step_ = parse_numbers(line, Int)
         set_ids = collect(first_id:step_:last_id)
         push!(data, set_ids...)
     else
-        for line in lines[idx_start + 1: idx_end]
+        for line in lines[idx_start+1:idx_end]
             if !(empty_or_comment_line(line))
                 set_ids = parse_numbers(line, Int)::Vector{Int}
                 push!(data, set_ids...)
@@ -211,7 +221,7 @@ end
 """Parse SURFACE keyword
 """
 function parse_section(model, lines, ::Symbol, idx_start, idx_end, ::Type{Val{:SURFACE}})
-    data = Vector{Tuple{Int, Symbol}}()
+    data = Vector{Tuple{Int,Symbol}}()
     definition = lines[idx_start]
 
     has_set_def = parse_definition(definition)
@@ -219,7 +229,7 @@ function parse_section(model, lines, ::Symbol, idx_start, idx_end, ::Type{Val{:S
     set_type = get(has_set_def, "type", "UNKNOWN")
     set_name = has_set_def["name"]
 
-    for line in lines[idx_start + 1: idx_end]
+    for line in lines[idx_start+1:idx_end]
         empty_or_comment_line(line) && continue
         m = match(r"(?P<element_id>\d+),.*(?P<element_side>S\d+).*", line)
         element_id = parse(Int, m[:element_id])
@@ -248,32 +258,34 @@ end
 Function parses Abaqus input file and generates a dictionary of
 all the available keywords.
 """
-function parse_abaqus(fid::IOStream)
-    model = Dict{String, Dict}()
-    model["nodes"] = Dict{Int, Vector{Float64}}()
-    model["node_sets"] = Dict{String, Vector{Int}}()
-    model["elements"] = Dict{Int, Vector{Int}}()
-    model["element_types"] = Dict{Int, Symbol}()
-    model["element_sets"] = Dict{String, Vector{Int}}()
-    model["surface_sets"] = Dict{String, Vector{Tuple{Int, Symbol}}}()
-    model["surface_types"] = Dict{String, Symbol}()
+function parse_abaqus(fid::IOStream, verbose::Bool)
+    model = Dict{String,Dict}()
+    model["nodes"] = Dict{Int,Vector{Float64}}()
+    model["node_sets"] = Dict{String,Vector{Int}}()
+    model["elements"] = Dict{Int,Vector{Int}}()
+    model["element_types"] = Dict{Int,Symbol}()
+    model["element_sets"] = Dict{String,Vector{Int}}()
+    model["surface_sets"] = Dict{String,Vector{Tuple{Int,Symbol}}}()
+    model["surface_types"] = Dict{String,Symbol}()
     keyword_sym::Symbol = :none
 
     lines = readlines(fid)
     keyword_indexes = find_keywords(lines)
     nkeyword_indexes = length(keyword_indexes)
-    push!(keyword_indexes, length(lines)+1)
+    push!(keyword_indexes, length(lines) + 1)
     idx_start = keyword_indexes[1]
 
     for idx_end in keyword_indexes[2:end]
         keyword_line = strip(uppercase(lines[idx_start]))
         keyword = strip(regex_match(r"\s*([\w ]+)", keyword_line, 1))
         k_sym = Symbol(keyword)
-        args = Tuple{Dict, Vector{Int}, Symbol, Int, Int, Type{Val{k_sym}}}
+        args = Tuple{Dict,Vector{Int},Symbol,Int,Int,Type{Val{k_sym}}}
         if hasmethod(parse_section, args)
-            parse_section(model, lines, k_sym, idx_start, idx_end-1, Val{k_sym})
+            parse_section(model, lines, k_sym, idx_start, idx_end - 1, Val{k_sym})
         else
-            @warn("Unknown section: '$(keyword)'")
+            if verbose
+                @warn("Unknown section: '$(keyword)'")
+            end
         end
         idx_start = idx_end
     end
@@ -287,6 +299,7 @@ Read ABAQUS mesh from file `fn`. Returns a dict with elements, nodes,
 element sets, node sets and other topologically imporant things, but
 not the actual model with boundary conditions, load steps and so on.
 """
-function abaqus_read_mesh(fn::String)
-    return open(parse_abaqus, fn)
+function abaqus_read_mesh(fn::String; kwargs...)
+    verbose = get(kwargs, :verbose, true)
+    return parse_abaqus(open(fn),verbose)
 end
