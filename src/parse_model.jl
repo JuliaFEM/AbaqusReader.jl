@@ -1,9 +1,6 @@
 # This file is a part of JuliaFEM.
 # License is MIT: see https://github.com/JuliaFEM/AbaqusReader.jl/blob/master/LICENSE
 
-import Base.parse
-import Base: getindex, length
-
 ### Model definitions for ABAQUS data model
 
 abstract type AbstractMaterial end
@@ -14,78 +11,78 @@ abstract type AbstractBoundaryCondition end
 abstract type AbstractOutputRequest end
 
 mutable struct Mesh
-    nodes :: Dict{Int, Vector{Float64}}
-    node_sets :: Dict{String, Vector{Int}}
-    elements :: Dict{Int, Vector{Int}}
-    element_types :: Dict{Int, Symbol}
-    element_sets :: Dict{String, Vector{Int}}
-    surface_sets :: Dict{String, Vector{Tuple{Int, Symbol}}}
-    surface_types :: Dict{String, Symbol}
+    nodes::Dict{Int,Vector{Float64}}
+    node_sets::Dict{String,Vector{Int}}
+    elements::Dict{Int,Vector{Int}}
+    element_types::Dict{Int,Symbol}
+    element_sets::Dict{String,Vector{Int}}
+    surface_sets::Dict{String,Vector{Tuple{Int,Symbol}}}
+    surface_types::Dict{String,Symbol}
 end
 
-function Mesh(d::Dict{String, Dict})
+function Mesh(d::Dict{String,Dict})
     return Mesh(d["nodes"], d["node_sets"], d["elements"],
-                d["element_types"], d["element_sets"],
-                d["surface_sets"], d["surface_types"])
+        d["element_types"], d["element_sets"],
+        d["surface_sets"], d["surface_types"])
 end
 
 mutable struct Model
-    path :: String
-    name :: String
-    mesh :: Mesh
-    materials :: Dict{Symbol, AbstractMaterial}
-    properties :: Vector{AbstractProperty}
-    boundary_conditions :: Vector{AbstractBoundaryCondition}
-    steps :: Vector{AbstractStep}
+    path::String
+    name::String
+    mesh::Mesh
+    materials::Dict{Symbol,AbstractMaterial}
+    properties::Vector{AbstractProperty}
+    boundary_conditions::Vector{AbstractBoundaryCondition}
+    steps::Vector{AbstractStep}
 end
 
 mutable struct SolidSection <: AbstractProperty
-    element_set :: Symbol
-    material_name :: Symbol
+    element_set::Symbol
+    material_name::Symbol
 end
 
 mutable struct Material <: AbstractMaterial
-    name :: Symbol
-    properties :: Vector{AbstractMaterialProperty}
+    name::Symbol
+    properties::Vector{AbstractMaterialProperty}
 end
 
 mutable struct Elastic <: AbstractMaterialProperty
-    E :: Float64
-    nu :: Float64
+    E::Float64
+    nu::Float64
 end
 
 mutable struct Step <: AbstractStep
-    kind :: Nullable{Symbol} # STATIC, ...
-    boundary_conditions :: Vector{AbstractBoundaryCondition}
-    output_requests :: Vector{AbstractOutputRequest}
+    kind::Union{Symbol,Nothing} # STATIC, ...
+    boundary_conditions::Vector{AbstractBoundaryCondition}
+    output_requests::Vector{AbstractOutputRequest}
 end
 
 mutable struct BoundaryCondition <: AbstractBoundaryCondition
-    kind :: Symbol # BOUNDARY, CLOAD, DLOAD, DSLOAD, ...
-    data :: Vector
-    options :: Dict
+    kind::Symbol # BOUNDARY, CLOAD, DLOAD, DSLOAD, ...
+    data::Vector
+    options::Dict
 end
 
 mutable struct OutputRequest <: AbstractOutputRequest
-    kind :: Symbol # NODE, EL, SECTION, ...
-    data :: Vector
-    options :: Dict
-    target :: Symbol # PRINT, FILE
+    kind::Symbol # NODE, EL, SECTION, ...
+    data::Vector
+    options::Dict
+    target::Symbol # PRINT, FILE
 end
 
 ### Utility functions to parse ABAQUS .inp file to data model
 
 mutable struct Keyword
-    name :: String
-    options :: Vector{Union{String, Pair}}
+    name::String
+    options::Vector{Union{String,Pair}}
 end
 
 mutable struct AbaqusReaderState
-    section :: Nullable{Keyword}
-    material :: Nullable{AbstractMaterial}
-    property :: Nullable{AbstractProperty}
-    step :: Nullable{AbstractStep}
-    data :: Vector{String}
+    section::Union{Keyword,Nothing}
+    material::Union{AbstractMaterial,Nothing}
+    property::Union{AbstractProperty,Nothing}
+    step::Union{AbstractStep,Nothing}
+    data::Vector{String}
 end
 
 function get_data(state::AbaqusReaderState)
@@ -100,24 +97,19 @@ function get_data(state::AbaqusReaderState)
 end
 
 function get_options(state::AbaqusReaderState)
-    return Dict(get(state.section).options)
+    section = state.section
+    section === nothing && return Dict()
+    return Dict(section.options)
 end
 
 function get_option(state::AbaqusReaderState, what::String)
     return get_options(state)[what]
 end
 
-function length(state::AbaqusReaderState)
-    return length(state.data)
-end
+Base.length(state::AbaqusReaderState) = length(state.data)
 
-function is_comment(line)
-    return startswith(line, "**")
-end
-
-function is_keyword(line)
-    return startswith(line, "*") && !is_comment(line)
-end
+is_comment(line::AbstractString) = startswith(line, "**")
+is_keyword(line::AbstractString) = startswith(line, "*") && !is_comment(line)
 
 function parse_keyword(line; uppercase_keyword=true)
     args = split(line, ",")
@@ -143,43 +135,52 @@ function parse_keyword(line; uppercase_keyword=true)
     return keyword
 end
 
-function is_new_section(line)
+function is_new_section(line::AbstractString)
     is_keyword(line) || return false
     section = parse_keyword(line)
-    is_abaqus_keyword_registered(section.name) || return false
-    return true
+    return is_abaqus_keyword_registered(section.name)
 end
 
-# open_section! is called right after keyword is found
-function open_section! end
-
-# close_section! is called at the end or section or before new keyword
-function close_section! end
-
+# Simpler dispatch using direct function calls based on section name
 function maybe_close_section!(model, state)
-    global close_section!
-    isnull(state.section) && return
-    section_name = get(state.section).name
-    @debug("Close section: $section_name")
-    args = Tuple{Model, AbaqusReaderState, Type{Val{Symbol(section_name)}}}
-    if hasmethod(close_section!, args)
-        close_section!(model, state, Val{Symbol(section_name)})
+    state.section === nothing && return
+    section_name = state.section.name
+    @debug "Close section: $section_name"
+
+    # Direct dispatch based on section name
+    if section_name == "SOLID SECTION"
+        close_solid_section!(model, state)
+    elseif section_name == "ELASTIC"
+        close_elastic!(model, state)
+    elseif section_name in ("BOUNDARY", "CLOAD", "DLOAD", "DSLOAD")
+        close_boundary_condition!(model, state)
+    elseif section_name in ("NODE PRINT", "EL PRINT", "SECTION PRINT")
+        close_output_request!(model, state)
     else
-        @debug("no close_section! found for $section_name")
+        @debug "No close handler for $section_name"
     end
+
     state.section = nothing
 end
 
 function maybe_open_section!(model, state)
-    global open_section!
-    section_name = get(state.section).name
-    section_options = get(state.section).options
-    @debug("New section: $section_name with options $section_options")
-    args = Tuple{Model, AbaqusReaderState, Type{Val{Symbol(section_name)}}}
-    if hasmethod(open_section!, args)
-        open_section!(model, state, Val{Symbol(section_name)})
+    section_name = state.section.name
+    section_options = state.section.options
+    @debug "New section: $section_name with options $section_options"
+
+    # Direct dispatch based on section name
+    if section_name == "SOLID SECTION"
+        open_solid_section!(model, state)
+    elseif section_name == "MATERIAL"
+        open_material!(model, state)
+    elseif section_name == "STEP"
+        open_step!(model, state)
+    elseif section_name == "STATIC"
+        open_static!(model, state)
+    elseif section_name == "END STEP"
+        open_end_step!(model, state)
     else
-        @warn("no open_section! found for $section_name")
+        @debug "No open handler for $section_name"
     end
 end
 
@@ -191,8 +192,8 @@ function new_section!(model, state, line::String)
 end
 
 function process_line!(model, state, line::String)
-    if isnull(state.section)
-        @debug("section = nothing! line = $line")
+    if state.section === nothing
+        @debug "section = nothing! line = $line"
         return
     end
     if is_keyword(line)
@@ -215,7 +216,10 @@ function abaqus_read_model(fn::String)
 
     model_path = dirname(fn)
     model_name = first(splitext(basename(fn)))
-    mesh = Mesh(open(parse_abaqus, fn))
+    mesh_dict = open(fn) do fid
+        parse_abaqus(fid, false)
+    end
+    mesh = Mesh(mesh_dict)
     materials = Dict()
     model = Model(model_path, model_name, mesh, materials, [], [], [])
 
@@ -239,36 +243,30 @@ end
 
 ### Code to parse ABAQUS .inp to data model
 
-# add here only keywords when planning to define open_section! and/or
-# close_section!, i.e. actually parse keyword to model. little bit of
-# magic is happening here, but after calling macro there is typealias
-# defined i.e. typealias SOLID_SECTION Type{Val{Symbol("SOLID_SECTION")}}
-# and also is_keyword_registered("SOLID SECTION") returns true after
-# registration, also notice underscoring
+# Keywords we recognize and process
+const RECOGNIZED_KEYWORDS = Set([
+    "SOLID SECTION",
+    "MATERIAL",
+    "ELASTIC",
+    "STEP",
+    "STATIC",
+    "END STEP",
+    "BOUNDARY",
+    "CLOAD",
+    "DLOAD",
+    "DSLOAD",
+    "NODE PRINT",
+    "EL PRINT",
+    "SECTION PRINT"
+])
 
-SOLID_SECTION = register_abaqus_keyword("SOLID SECTION")
-
-MATERIAL = register_abaqus_keyword("MATERIAL")
-ELASTIC = register_abaqus_keyword("ELASTIC")
-
-STEP = register_abaqus_keyword("STEP")
-STATIC = register_abaqus_keyword("STATIC")
-END_STEP = register_abaqus_keyword("END STEP")
-
-BOUNDARY = register_abaqus_keyword("BOUNDARY")
-CLOAD = register_abaqus_keyword("CLOAD")
-DLOAD = register_abaqus_keyword("DLOAD")
-DSLOAD = register_abaqus_keyword("DSLOAD")
-const BOUNDARY_CONDITIONS = Union{BOUNDARY, CLOAD, DLOAD, DSLOAD}
-
-NODE_PRINT = register_abaqus_keyword("NODE PRINT")
-EL_PRINT = register_abaqus_keyword("EL PRINT")
-SECTION_PRINT = register_abaqus_keyword("SECTION PRINT")
-const OUTPUT_REQUESTS = Union{NODE_PRINT, EL_PRINT, SECTION_PRINT}
+function is_abaqus_keyword_registered(keyword::String)
+    return keyword in RECOGNIZED_KEYWORDS
+end
 
 ## Properties
 
-function open_section!(model, state, ::SOLID_SECTION)
+function open_solid_section!(model, state)
     element_set = Symbol(get_option(state, "ELSET"))
     material_name = Symbol(get_option(state, "MATERIAL"))
     property = SolidSection(element_set, material_name)
@@ -276,72 +274,66 @@ function open_section!(model, state, ::SOLID_SECTION)
     push!(model.properties, property)
 end
 
-function close_section!(model, state, ::SOLID_SECTION)
-    name = model.name
+function close_solid_section!(model, state)
     state.property = nothing
 end
 
 ## Materials
 
-function open_section!(model, state, ::MATERIAL)
+function open_material!(model, state)
     material_name = Symbol(get_option(state, "NAME"))
     material = Material(material_name, [])
     state.material = material
     model.materials[material_name] = material
 end
 
-function close_section!(model, state, ::ELASTIC)
-    name = model.name
+function close_elastic!(model, state)
     @assert length(state) == 1
     E, nu = first(get_data(state))
     material_property = Elastic(E, nu)
-    material = get(state.material)
+    material = state.material
+    @assert material !== nothing
     push!(material.properties, material_property)
 end
 
 ## Steps
 
-function open_section!(model, state, ::STEP)
-    name = model.name
+function open_step!(model, state)
     step_ = Step(nothing, Vector(), Vector())
     state.step = step_
     push!(model.steps, step_)
 end
 
-function open_section!(model, state, ::STATIC)
-    name = model.name
-    isnull(state.step) && error("*STATIC outside *STEP ?")
-    get(state.step).kind = :STATIC
+function open_static!(model, state)
+    state.step === nothing && error("*STATIC outside *STEP ?")
+    state.step.kind = :STATIC
 end
 
-function open_section!(model, state, ::END_STEP)
-    name = model.name
+function open_end_step!(model, state)
     state.step = nothing
 end
 
 ## Steps -- boundary conditions
 
-function close_section!(model, state, ::BOUNDARY_CONDITIONS)
-    kind = Symbol(get(state.section).name)
+function close_boundary_condition!(model, state)
+    kind = Symbol(state.section.name)
     data = get_data(state)
     options = get_options(state)
     bc = BoundaryCondition(kind, data, options)
-    if isnull(state.step)
+    if state.step === nothing
         push!(model.boundary_conditions, bc)
     else
-        step_ = get(state.step)
-        push!(step_.boundary_conditions, bc)
+        push!(state.step.boundary_conditions, bc)
     end
 end
 
 ## Steps -- output requests
 
-function close_section!(model, state, ::OUTPUT_REQUESTS)
-    name = model.name
-    kind, target = map(Meta.parse, split(get(state.section).name, " "))
+function close_output_request!(model, state)
+    kind, target = map(Meta.parse, split(state.section.name, " "))
     data = get_data(state)
     options = get_options(state)
     request = OutputRequest(Symbol(kind), data, options, Symbol(target))
-    step_ = get(state.step)
-    push!(step_.output_requests, request)
+    @assert state.step !== nothing
+    push!(state.step.output_requests, request)
 end
