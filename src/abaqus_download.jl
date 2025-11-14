@@ -32,12 +32,12 @@ function abaqus_download(model_name, env=ENV; dryrun=false)
     end
     if !haskey(env, "ABAQUS_DOWNLOAD_URL")
         error("ABAQUS input file $fn not found and `ABAQUS_DOWNLOAD_URL` not ",
-              "set, unable to download file. To enable automatic model ",
-              "downloading, set url to models to environment variable
-              `ABAQUS_DOWNLOAD_URL`")
+            "set, unable to download file. To enable automatic model ",
+            "downloading, set url to models to environment variable
+            `ABAQUS_DOWNLOAD_URL`")
     end
     url = joinpath(env["ABAQUS_DOWNLOAD_URL"], model_name)
-    @debug("Downloading model $model_name to $fn")
+    @debug "Downloading model $model_name to $fn"
     dryrun || download(url, fn)
     return fn
 end
