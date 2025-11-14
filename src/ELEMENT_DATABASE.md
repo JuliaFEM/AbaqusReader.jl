@@ -16,8 +16,16 @@ description = "<optional description>"
 ### Fields
 
 - **`nodes`** (required): Integer specifying the number of nodes in the element
-- **`type`** (required): String specifying the generic element type that this ABAQUS element maps to
-  - Common types: `"Tet4"`, `"Tet10"`, `"Hex8"`, `"Hex20"`, `"Wedge6"`, `"Wedge15"`, `"Tri3"`, `"Tri6"`, `"Quad4"`, `"Quad8"`, `"Seg2"`, `"Seg3"`, `"CPS3"`
+- **`type`** (required): String specifying the mesh topology type that this ABAQUS element maps to
+  - The type uses an abbreviated naming convention: **ShapePrefix + NodeCount**
+  - `"Tet4"`, `"Tet10"` - Tetrahedron with 4 or 10 nodes
+  - `"Hex8"`, `"Hex20"` - Hexahedron with 8 or 20 nodes  
+  - `"Wedge6"`, `"Wedge15"` - Wedge (pentahedron) with 6 or 15 nodes
+  - `"Tri3"`, `"Tri6"` - Triangle with 3 or 6 nodes
+  - `"Quad4"`, `"Quad8"` - Quadrilateral with 4 or 8 nodes
+  - `"Seg2"`, `"Seg3"` - Segment (line) with 2 or 3 nodes
+  - `"Poi1"` - Point (single node)
+  - The number suffix makes it explicit how many nodes the element has
 - **`description`** (optional): String describing the element (useful for documentation)
 
 ## Adding New Elements

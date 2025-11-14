@@ -1,10 +1,22 @@
 # ABAQUS Element Database
-# This file defines the mapping from ABAQUS element types to generic element topology
+# This file defines the mapping from ABAQUS element types to mesh topology
 # Descriptions are based on ABAQUS Analysis User's Guide
+#
 # Format: [element_name]
 #         nodes = number of nodes
-#         type = generic element type symbol (as string)
+#         type = mesh topology type (abbreviated for convenience)
 #         description = element description from ABAQUS documentation
+#
+# Topology Types:
+#   Tet4, Tet10      - Tetrahedron with 4 or 10 nodes
+#   Hex8, Hex20      - Hexahedron with 8 or 20 nodes
+#   Wedge6, Wedge15  - Wedge (pentahedron) with 6 or 15 nodes
+#   Tri3, Tri6       - Triangle with 3 or 6 nodes
+#   Quad4, Quad8     - Quadrilateral with 4 or 8 nodes
+#   Seg2, Seg3       - Segment (line) with 2 or 3 nodes
+#   Poi1             - Point (single node)
+#
+# The number suffix indicates the node count. The prefix describes the geometric shape.
 
 # =============================================================================
 # 3D SOLID ELEMENTS - TETRAHEDRAL
@@ -312,5 +324,5 @@ description = "2-node linear beam in space with cubic interpolation. Euler-Berno
 
 [DCOUP3D]
 nodes = 1
-type = "Poin1"
+type = "Poi1"
 description = "3D distributed coupling element. Couples the motion of a reference node to a surface. Has only 1 reference node - the surface coupling is defined separately via *COUPLING keyword. Used for distributing loads/constraints."
