@@ -1,7 +1,7 @@
 # This file is a part of JuliaFEM.
 # License is MIT: see https://github.com/JuliaFEM/AbaqusReader.jl/blob/master/LICENSE
 
-global __register__ = Set{String}()
+const REGISTERED_KEYWORDS = Set{String}()
 
 """
     register_abaqus_keyword(keyword::String)
@@ -10,8 +10,8 @@ Add ABAQUS keyword `s` to register. That is, after registration every time
 keyword show up in `.inp` file a new section is started
 """
 function register_abaqus_keyword(keyword::String)
-    push!(__register__, keyword)
-    return Type{Val{Symbol(keyword)}}
+    push!(REGISTERED_KEYWORDS, keyword)
+    return Val{Symbol(keyword)}
 end
 
 """
@@ -20,5 +20,5 @@ end
 Return true/false is ABAQUS keyword registered.
 """
 function is_abaqus_keyword_registered(keyword::String)
-    return keyword in __register__
+    return keyword in REGISTERED_KEYWORDS
 end
