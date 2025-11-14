@@ -305,3 +305,12 @@ description = "3-node quadratic beam in space. Timoshenko beam theory. Quadratic
 nodes = 2
 type = "Seg2"
 description = "2-node linear beam in space with cubic interpolation. Euler-Bernoulli beam theory (no transverse shear). Cubic interpolation for deflection. Better for slender beams where shear deformation is negligible."
+
+# =============================================================================
+# COUPLING AND CONSTRAINT ELEMENTS
+# =============================================================================
+
+[DCOUP3D]
+nodes = 1
+type = "Poin1"
+description = "3D distributed coupling element. Couples the motion of a reference node to a surface. Has only 1 reference node - the surface coupling is defined separately via *COUPLING keyword. Used for distributing loads/constraints."

@@ -170,3 +170,21 @@ end
     @test_throws ErrorException parse_section(model, data, :ELSET, 11, 12, Val{:NSET})
     @test keys(model["element_sets"]) == Set(["Without", "With quotes"])
 end
+
+@testset "DCOUP3D element" begin
+    data = """*ELEMENT, TYPE=DCOUP3D
+    1, 100
+    """
+    data = split(data, "\n")
+    model = Dict{String,Any}()
+    model["node_sets"] = Dict{String,Vector{Int}}()
+    model["elements"] = Dict{Int,Vector{Int}}()
+    model["element_sets"] = Dict{String,Vector{Int}}()
+    model["element_types"] = Dict{Int,Symbol}()
+    parse_section(model, data, :ELEMENT, 1, 2, Val{:ELEMENT})
+    @test haskey(model, "elements")
+    @test haskey(model, "element_types")
+    @test model["element_types"][1] == :Poin1
+    @test model["elements"][1] == [100]
+    @test length(model["elements"][1]) == 1
+end
