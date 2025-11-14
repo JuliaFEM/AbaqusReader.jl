@@ -75,25 +75,63 @@ With this complete model, you have everything needed to reproduce the simulation
 
 ## Supported Elements
 
-The following ABAQUS elements are supported, along with the corresponding number of nodes and the `element_types` key:
+The following ABAQUS element types are currently supported. Note that element variants (e.g., C3D8R, C3D8H) with the same node count map to the same generic element type, as the package focuses on mesh topology rather than analysis-specific details like integration schemes.
 
-|abaqus element| number of nodes| element_types|
-|---------|:--:|---------|
-| C3D4    | 4  |`:Tet4`  |
-| C3D4H   | 4  |`:Tet4`  |
-| C3D6    | 6  |`:Wedge6`|
-| C3D8    | 8  |`:Hex8`  |
-| C3D10   | 10 |`:Tet10` |
-| C3D20   | 20 |`:Hex20` |
-| C3D20E  | 20 |`:Hex20` |
-| S3      | 3  |`:Tri3`  |
-| STRI65  | 6  |`:Tri6`  |
-| CPS4    | 4  |`:Quad4` |
-| T2D2    | 2  |`:Seg2`  |
-| T3D2    | 2  |`:Seg2`  |
-| B33     | 2  |`:Seg2`  |
+### 3D Solid Elements
 
-Adding new elements is easy - element definitions are in a simple dictionary in `/src/parse_mesh.jl`.
+| ABAQUS Element | Nodes | Generic Type | Notes |
+|----------------|:-----:|--------------|-------|
+| C3D4, C3D4H | 4 | `:Tet4` | Linear tetrahedron |
+| C3D10, C3D10H, C3D10M, C3D10R | 10 | `:Tet10` | Quadratic tetrahedron |
+| C3D6 | 6 | `:Wedge6` | Linear wedge/prism |
+| C3D15 | 15 | `:Wedge15` | Quadratic wedge/prism |
+| C3D8, C3D8H, C3D8I, C3D8R, C3D8RH | 8 | `:Hex8` | Linear hexahedron |
+| C3D20, C3D20E, C3D20H, C3D20R, C3D20RH | 20 | `:Hex20` | Quadratic hexahedron |
+| COH3D8 | 8 | `:Hex8` | Cohesive element |
+
+### Shell Elements
+
+| ABAQUS Element | Nodes | Generic Type | Notes |
+|----------------|:-----:|--------------|-------|
+| S3, S3R, STRI3 | 3 | `:Tri3` | Triangular shell |
+| STRI65 | 6 | `:Tri6` | 6-node triangular shell |
+| S4, S4R | 4 | `:Quad4` | Quadrilateral shell |
+| S8R | 8 | `:Quad8` | 8-node quadrilateral shell |
+
+### 2D Continuum Elements
+
+| ABAQUS Element | Nodes | Generic Type | Notes |
+|----------------|:-----:|--------------|-------|
+| CPS3 | 3 | `:CPS3` | Plane stress triangle |
+| CPS4, CPS4R, CPS4I | 4 | `:Quad4` | Plane stress quad |
+| CPS6 | 6 | `:Tri6` | Plane stress 6-node triangle |
+| CPS8, CPS8R | 8 | `:Quad8` | Plane stress 8-node quad |
+| CPE3 | 3 | `:Tri3` | Plane strain triangle |
+| CPE4, CPE4R, CPE4I | 4 | `:Quad4` | Plane strain quad |
+| CPE6 | 6 | `:Tri6` | Plane strain 6-node triangle |
+| CPE8, CPE8R | 8 | `:Quad8` | Plane strain 8-node quad |
+| CAX3 | 3 | `:Tri3` | Axisymmetric triangle |
+| CAX4, CAX4R, CAX4I | 4 | `:Quad4` | Axisymmetric quad |
+| CAX6 | 6 | `:Tri6` | Axisymmetric 6-node triangle |
+| CAX8, CAX8R | 8 | `:Quad8` | Axisymmetric 8-node quad |
+
+### Beam and Truss Elements
+
+| ABAQUS Element | Nodes | Generic Type | Notes |
+|----------------|:-----:|--------------|-------|
+| T2D2, T3D2 | 2 | `:Seg2` | 2D/3D truss |
+| B31, B33 | 2 | `:Seg2` | Linear beam |
+| B32 | 3 | `:Seg3` | Quadratic beam |
+
+**Element Suffixes:**
+
+- `R` = Reduced integration
+- `H` = Hybrid formulation  
+- `I` = Incompatible modes
+- `M` = Modified formulation
+- `E` = Enhanced
+
+Adding new elements is straightforward - element definitions are in a simple dictionary in `/src/parse_mesh.jl`.
 
 [ci-img]: https://github.com/JuliaFEM/AbaqusReader.jl/workflows/CI/badge.svg
 [ci-url]: https://github.com/JuliaFEM/AbaqusReader.jl/actions?query=workflow%3ACI+branch%3Amaster

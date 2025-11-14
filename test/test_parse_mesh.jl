@@ -69,20 +69,52 @@ end
 end
 
 @testset "find element types and nodes" begin
+    # Test 3D solid elements
     @test element_has_nodes(Val{:C3D4}) == 4
     @test element_has_type(Val{:C3D4}) == :Tet4
     @test element_has_nodes(Val{:C3D8}) == 8
     @test element_has_type(Val{:C3D8}) == :Hex8
+    @test element_has_nodes(Val{:C3D8R}) == 8
+    @test element_has_type(Val{:C3D8R}) == :Hex8
     @test element_has_nodes(Val{:C3D10}) == 10
     @test element_has_type(Val{:C3D10}) == :Tet10
+    @test element_has_nodes(Val{:C3D10R}) == 10
+    @test element_has_type(Val{:C3D10R}) == :Tet10
     @test element_has_nodes(Val{:C3D20}) == 20
     @test element_has_nodes(Val{:C3D20E}) == 20
+    @test element_has_nodes(Val{:C3D20R}) == 20
+    @test element_has_nodes(Val{:C3D15}) == 15
+    @test element_has_type(Val{:C3D15}) == :Wedge15
+    
+    # Test shell elements
     @test element_has_nodes(Val{:S3}) == 3
     @test element_has_type(Val{:S3}) == :Tri3
+    @test element_has_nodes(Val{:S3R}) == 3
+    @test element_has_type(Val{:S3R}) == :Tri3
+    @test element_has_nodes(Val{:S4R}) == 4
+    @test element_has_type(Val{:S4R}) == :Quad4
     @test element_has_nodes(Val{:STRI65}) == 6
     @test element_has_type(Val{:STRI65}) == :Tri6
+    
+    # Test 2D plane elements
     @test element_has_nodes(Val{:CPS4}) == 4
     @test element_has_type(Val{:CPS4}) == :Quad4
+    @test element_has_nodes(Val{:CPS4R}) == 4
+    @test element_has_type(Val{:CPS4R}) == :Quad4
+    @test element_has_nodes(Val{:CPE3}) == 3
+    @test element_has_type(Val{:CPE3}) == :Tri3
+    @test element_has_nodes(Val{:CPE4R}) == 4
+    @test element_has_type(Val{:CPE4R}) == :Quad4
+    @test element_has_nodes(Val{:CAX4}) == 4
+    @test element_has_type(Val{:CAX4}) == :Quad4
+    @test element_has_nodes(Val{:CAX4R}) == 4
+    @test element_has_type(Val{:CAX4R}) == :Quad4
+    
+    # Test beam elements
+    @test element_has_nodes(Val{:B31}) == 2
+    @test element_has_type(Val{:B31}) == :Seg2
+    @test element_has_nodes(Val{:B32}) == 3
+    @test element_has_type(Val{:B32}) == :Seg3
 end
 
 @testset "use GENERATE keyword" begin

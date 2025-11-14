@@ -4,12 +4,12 @@
 using Documenter, AbaqusReader
 
 makedocs(modules=[AbaqusReader],
-         format = Documenter.HTML(),
-         checkdocs = :all,
-         sitename = "AbaqusReader.jl",
-         pages = [
-                  "Home" => "index.md",
-                  "Examples" => "examples.md",
-                  "API" => "api.md",
-                ]
-        )
+  format=Documenter.HTML(),
+  checkdocs=:all,
+  sitename="AbaqusReader.jl",
+  pages=[
+    "Home" => "index.md",
+    "Examples" => "examples.md",
+    "API" => "api.md",
+  ]
+)
