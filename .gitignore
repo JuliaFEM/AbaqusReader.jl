@@ -3,3 +3,4 @@ docs/site/
 *.swp
 *.cov
 Manifest.toml
+test_output.log
