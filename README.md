@@ -1,17 +1,38 @@
-# AbaqusReader.jl - parse ABAQUS mesh files to Julia
+# AbaqusReader.jl - parse ABAQUS input files to Julia
 
 [![ci][ci-img]][ci-url]
 [![codecov][coverage-img]][coverage-url]
 [![docs-stable][docs-stable-img]][docs-stable-url]
 [![docs-dev][docs-dev-img]][docs-dev-url]
 
-AbaqusReader.jl can be used to parse ABAQUS .inp file format. Two functions is
-exported: `abaqus_read_mesh(filename::String)` can be used to parse mesh to
-simple Dict-based structure. With function `abaqus_read_model(filename::String)`
-it's also possible to parse more information from model, like boundary
-conditions and steps.
+AbaqusReader.jl provides two distinct ways to read ABAQUS `.inp` files, depending on your needs:
 
-Reading mesh is made simple:
+## Two Approaches for Two Different Needs
+
+### 1. **Mesh-Only Parsing** - `abaqus_read_mesh()`
+When you only need the **geometry and topology** (nodes, elements, sets), use this function. 
+It returns a simple dictionary structure containing just the mesh data - perfect for:
+- Visualizing geometry
+- Converting meshes to other formats
+- Quick mesh inspection
+- Building your own FEM implementations on top of ABAQUS geometries
+
+### 2. **Complete Model Parsing** - `abaqus_read_model()`
+When you need to **reproduce the entire simulation**, use this function.
+It parses the complete simulation recipe including mesh, materials, boundary conditions, 
+load steps, and analysis parameters - everything needed to:
+- Fully understand the simulation setup
+- Reproduce the analysis in another solver
+- Extract complete simulation definitions programmatically
+- Analyze or modify simulation parameters
+
+---
+
+## Quick Start
+
+### Reading Just the Mesh
+
+Simple and fast - extract only geometry and topology:
 
 ```julia
 using AbaqusReader
@@ -30,26 +51,37 @@ Dict{String,Dict} with 7 entries:
 ```
 
 Like said, `mesh` is a simple dictionary containing other dictionaries like
-`elements`, `nodes`, `element_sets` and so on. This is a good  starting point to
-construct own finite element implementations based on real models done using
+`elements`, `nodes`, `element_sets` and so on. This is a good starting point to
+construct your own finite element implementations based on real models done using
 ABAQUS.
 
-If boundary conditions are also requested, `abaqus_read_model` must be used:
+### Reading the Complete Model
+
+When you need the full simulation recipe, not just the mesh:
 
 ```julia
 model = abaqus_read_model("abaqus_file.inp")
 ```
 
-This returns `AbaqusReader.Model` instance.
+This returns an `AbaqusReader.Model` instance containing the complete simulation definition:
 
-## Supported elements
-The following abaqus elements are supported, along with the corresponding number of nodes and the `elemen_types` key
+- **Mesh**: All geometry (nodes, elements, sets, surfaces)
+- **Materials**: Material definitions with properties (elastic, plastic, etc.)
+- **Sections**: Property assignments linking materials to element sets
+- **Boundary Conditions**: Constraints, loads, prescribed displacements
+- **Steps**: Analysis steps with their specific conditions and outputs
+
+With this complete model, you have everything needed to reproduce the simulation.
+
+## Supported Elements
+
+The following ABAQUS elements are supported, along with the corresponding number of nodes and the `element_types` key:
 
 |abaqus element| number of nodes| element_types|
 |---------|:--:|---------|
-| C3D4    | 4  |`:Tet4`  | 
-| C3D4H   | 4  |`:Tet4`  | 
-| C3D6    | 6  |`:Wedge6`| 
+| C3D4    | 4  |`:Tet4`  |
+| C3D4H   | 4  |`:Tet4`  |
+| C3D6    | 6  |`:Wedge6`|
 | C3D8    | 8  |`:Hex8`  |
 | C3D10   | 10 |`:Tet10` |
 | C3D20   | 20 |`:Hex20` |
@@ -61,7 +93,7 @@ The following abaqus elements are supported, along with the corresponding number
 | T3D2    | 2  |`:Seg2`  |
 | B33     | 2  |`:Seg2`  |
 
-adding new elments is very easy, just look at the first lines of `/src/parse_mesh.jl`
+Adding new elements is easy - element definitions are in a simple dictionary in `/src/parse_mesh.jl`.
 
 [ci-img]: https://github.com/JuliaFEM/AbaqusReader.jl/workflows/CI/badge.svg
 [ci-url]: https://github.com/JuliaFEM/AbaqusReader.jl/actions?query=workflow%3ACI+branch%3Amaster
