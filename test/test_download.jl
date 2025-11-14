@@ -11,7 +11,7 @@ using AbaqusReader
     ENV_["ABAQUS_DOWNLOAD_DIR"] = dirname(fn)
     @test abaqus_download(model_name, ENV_) == fn
     isfile(fn) && rm(fn)
-    @test_throws Exception abaqus_download(model_name, ENV_)
+    @test_throws ErrorException abaqus_download(model_name, ENV_)
     ENV_["ABAQUS_DOWNLOAD_URL"] = "https://models.com"
     @test abaqus_download(model_name, ENV_; dryrun=true) == fn
 end
