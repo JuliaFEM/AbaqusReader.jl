@@ -4,7 +4,5 @@
 using Documenter
 
 deploydocs(
-    repo = "github.com/JuliaFEM/AbaqusReader.jl.git",
-    target = "build",
-    deps = nothing,
-    make = nothing)
+    repo="github.com/JuliaFEM/AbaqusReader.jl.git",
+)

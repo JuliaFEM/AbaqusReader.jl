@@ -2,7 +2,7 @@
 # License is MIT: see https://github.com/JuliaFEM/AbaqusReader.jl/blob/master/LICENSE
 
 using AbaqusReader: element_has_type, element_has_nodes, parse_abaqus,
-                    parse_section, abaqus_read_mesh
+    parse_section, abaqus_read_mesh
 
 datadir = first(splitext(basename(@__FILE__)))
 
@@ -25,16 +25,16 @@ end
     3,         4,       176
     """
     data = split(data, "\n")
-    model = Dict{String, Any}()
-    model["node_sets"] = Dict{String, Vector{Int}}()
-    model["elements"] = Dict{Int, Vector{Int}}()
-    model["element_sets"] = Dict{String, Vector{Int}}()
-    model["element_types"] = Dict{Int, Symbol}()
+    model = Dict{String,Any}()
+    model["node_sets"] = Dict{String,Vector{Int}}()
+    model["elements"] = Dict{Int,Vector{Int}}()
+    model["element_sets"] = Dict{String,Vector{Int}}()
+    model["element_types"] = Dict{Int,Symbol}()
     parse_section(model, data, :ELEMENT, 1, 5, Val{:ELEMENT})
     @test length(model["elements"]) == 2
     @test model["element_sets"]["BEAM"] == [1, 2]
     @test model["elements"][1] == [243, 240, 191, 117, 245, 242, 244, 1, 2, 196]
-    @test model["elements"][2]== [204, 199, 175, 130, 207, 208, 209, 3, 4, 176]
+    @test model["elements"][2] == [204, 199, 175, 130, 207, 208, 209, 3, 4, 176]
 end
 
 
@@ -85,7 +85,7 @@ end
     @test element_has_nodes(Val{:C3D20R}) == 20
     @test element_has_nodes(Val{:C3D15}) == 15
     @test element_has_type(Val{:C3D15}) == :Wedge15
-    
+
     # Test shell elements
     @test element_has_nodes(Val{:S3}) == 3
     @test element_has_type(Val{:S3}) == :Tri3
@@ -95,7 +95,7 @@ end
     @test element_has_type(Val{:S4R}) == :Quad4
     @test element_has_nodes(Val{:STRI65}) == 6
     @test element_has_type(Val{:STRI65}) == :Tri6
-    
+
     # Test 2D plane elements
     @test element_has_nodes(Val{:CPS4}) == 4
     @test element_has_type(Val{:CPS4}) == :Quad4
@@ -109,7 +109,7 @@ end
     @test element_has_type(Val{:CAX4}) == :Quad4
     @test element_has_nodes(Val{:CAX4R}) == 4
     @test element_has_type(Val{:CAX4R}) == :Quad4
-    
+
     # Test beam elements
     @test element_has_nodes(Val{:B31}) == 2
     @test element_has_type(Val{:B31}) == :Seg2
@@ -123,14 +123,16 @@ end
 7,13,2
 """
     fn = tempname() * ".inp"
-    open(fn, "w") do fid write(fid, data) end
+    open(fn, "w") do fid
+        write(fid, data)
+    end
     mesh = open(parse_abaqus, fn)
     @test mesh["node_sets"]["testgen"] == [7, 9, 11, 13]
 end
 
 @testset "parse ELSET" begin
     lines = ["*ELSET, ELSET=TEST1", "1"]
-    mesh = Dict("element_sets" => Dict{String, Vector{Int}}())
+    mesh = Dict("element_sets" => Dict{String,Vector{Int}}())
     parse_section(mesh, lines, :ELSET, 1, 2, Val{:ELSET})
     @test mesh["element_sets"]["TEST1"] == [1]
 end
@@ -156,15 +158,15 @@ end
     1,2,3
     """
     data = split(data, "\n")
-    model = Dict{String, Any}()
-    model["node_sets"]    = Dict{String, Vector{Int}}()
-    model["element_sets"] = Dict{String, Vector{Int}}()
-    @test parse_section(model, data, :NSET, 1, 2, Val{:NSET}) == [1,2,3]
-    @test parse_section(model, data, :NSET, 3, 4, Val{:NSET}) == [3,4,5]
+    model = Dict{String,Any}()
+    model["node_sets"] = Dict{String,Vector{Int}}()
+    model["element_sets"] = Dict{String,Vector{Int}}()
+    @test parse_section(model, data, :NSET, 1, 2, Val{:NSET}) == [1, 2, 3]
+    @test parse_section(model, data, :NSET, 3, 4, Val{:NSET}) == [3, 4, 5]
     @test_throws ErrorException parse_section(model, data, :NSET, 5, 6, Val{:NSET})
     @test keys(model["node_sets"]) == Set(["Without", "With quotes"])
-    @test parse_section(model, data, :ELSET, 7, 8, Val{:ELSET}) == [1,2,3]
-    @test parse_section(model, data, :ELSET, 9, 10, Val{:ELSET}) == [3,4,5]
+    @test parse_section(model, data, :ELSET, 7, 8, Val{:ELSET}) == [1, 2, 3]
+    @test parse_section(model, data, :ELSET, 9, 10, Val{:ELSET}) == [3, 4, 5]
     @test_throws ErrorException parse_section(model, data, :ELSET, 11, 12, Val{:NSET})
     @test keys(model["element_sets"]) == Set(["Without", "With quotes"])
 end

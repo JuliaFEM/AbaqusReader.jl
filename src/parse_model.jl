@@ -206,11 +206,73 @@ function process_line!(model, state, line::String)
 end
 
 """
-    abaqus_read_model(filename::String)
+    abaqus_read_model(filename::String) -> Model
 
-Read ABAQUS model from file. Include also boundary conditions, load steps
-and so on. If only mesh is needed, it's better to use `abaqus_read_mesh`
-insted.
+Read complete ABAQUS model including mesh, materials, boundary conditions, and analysis steps.
+
+This function performs **complete model parsing**, extracting the entire simulation definition
+from an ABAQUS input file. Use this when you need to reproduce or analyze the full simulation setup,
+not just the mesh geometry.
+
+# Arguments
+- `filename::String`: Path to the ABAQUS input file (`.inp`)
+
+# Returns
+An `AbaqusReader.Model` object with fields:
+- `path::String`: Directory containing the input file
+- `name::String`: Model name (basename without extension)
+- `mesh::Mesh`: Mesh object containing all geometric data
+  - `mesh.nodes`: Node coordinates
+  - `mesh.elements`: Element connectivity
+  - `mesh.element_types`: Element type mapping
+  - `mesh.node_sets`: Named node sets
+  - `mesh.element_sets`: Named element sets
+  - `mesh.surface_sets`: Surface definitions
+- `materials::Dict`: Material definitions with properties
+  - Each material may contain: `elastic`, `density`, `plastic`, etc.
+- `properties::Vector`: Section property assignments (linking materials to element sets)
+- `boundary_conditions::Vector`: Prescribed displacements, constraints, etc.
+- `steps::Vector`: Analysis steps with loads, BCs, and output requests
+
+# Examples
+```julia
+using AbaqusReader
+
+# Read complete model
+model = abaqus_read_model("simulation.inp")
+
+# Access mesh (same structure as abaqus_read_mesh)
+nodes = model.mesh.nodes
+elements = model.mesh.elements
+
+# Access material properties
+steel = model.materials["STEEL"]
+if haskey(steel, "elastic")
+    E, ν = steel["elastic"]
+    println("Young's modulus: \$E, Poisson's ratio: \$ν")
+end
+
+# Iterate through boundary conditions
+for bc in model.boundary_conditions
+    println("BC on \$(bc.set_name): DOF \$(bc.dof) = \$(bc.value)")
+end
+
+# Iterate through analysis steps
+for step in model.steps
+    println("Step: \$(step.name), Type: \$(step.type)")
+end
+```
+
+# See Also
+- [`abaqus_read_mesh`](@ref): Read only mesh geometry (faster, simpler output)
+- [`create_surface_elements`](@ref): Extract surface elements from model
+
+# Notes
+- Slower than `abaqus_read_mesh` as it parses the entire model
+- Returns structured `Model` object (not a simple Dict)
+- Parses most common ABAQUS keywords but not every possible option
+- Best suited for "flat" input files; structured part/assembly files may have limited support
+- Use when you need materials, BCs, loads, or analysis parameters
 """
 function abaqus_read_model(fn::String)
 

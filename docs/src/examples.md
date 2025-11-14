@@ -135,9 +135,169 @@ filename = abaqus_download("piston_ring_2d")
 
 # Then read it
 mesh = abaqus_read_mesh(filename)
+
+# The file is now available locally for further analysis
+println("Downloaded: $filename")
+println("Nodes: ", length(mesh["nodes"]))
+println("Elements: ", length(mesh["elements"]))
 ```
 
-Available example models can be found in the AbaqusReader source repository.
+This is useful for:
+
+- Testing your analysis pipeline
+- Learning the package with real models
+- Benchmarking performance
+- Creating reproducible examples
+
+## Example 5: Mesh Statistics and Quality Checks
+
+Extract useful information about your mesh:
+
+```julia
+using AbaqusReader
+using Statistics
+
+mesh = abaqus_read_mesh("model.inp")
+
+# Count elements by type
+element_type_counts = Dict{Symbol, Int}()
+for elem_type in values(mesh["element_types"])
+    element_type_counts[elem_type] = get(element_type_counts, elem_type, 0) + 1
+end
+
+println("Element type distribution:")
+for (etype, count) in element_type_counts
+    println("  $etype: $count elements")
+end
+
+# Node set statistics
+println("\nNode sets:")
+for (set_name, node_ids) in mesh["node_sets"]
+    println("  $set_name: $(length(node_ids)) nodes")
+end
+
+# Element set statistics  
+println("\nElement sets:")
+for (set_name, elem_ids) in mesh["element_sets"]
+    println("  $set_name: $(length(elem_ids)) elements")
+end
+
+# Calculate bounding box
+all_coords = collect(values(mesh["nodes"]))
+x_coords = [c[1] for c in all_coords]
+y_coords = [c[2] for c in all_coords]
+z_coords = [c[3] for c in all_coords]
+
+println("\nBounding box:")
+println("  X: [$(minimum(x_coords)), $(maximum(x_coords))]")
+println("  Y: [$(minimum(y_coords)), $(maximum(y_coords))]")
+println("  Z: [$(minimum(z_coords)), $(maximum(z_coords))]")
+```
+
+## Example 6: Converting to Other Formats
+
+Export mesh data to different formats for use in other tools:
+
+```julia
+using AbaqusReader
+
+mesh = abaqus_read_mesh("model.inp")
+
+# Export to VTK format (pseudo-code - requires a VTK writer package)
+# using WriteVTK
+# vtk_grid("output", mesh["nodes"], mesh["elements"])
+
+# Export nodes to CSV
+using DelimitedFiles
+
+# Create node matrix [id, x, y, z]
+node_matrix = zeros(length(mesh["nodes"]), 4)
+for (i, (node_id, coords)) in enumerate(sort(collect(mesh["nodes"])))
+    node_matrix[i, :] = [node_id, coords...]
+end
+
+writedlm("nodes.csv", node_matrix, ',')
+println("Exported $(size(node_matrix, 1)) nodes to nodes.csv")
+
+# Export element connectivity
+open("elements.csv", "w") do io
+    println(io, "element_id,type,connectivity...")
+    for (elem_id, connectivity) in sort(collect(mesh["elements"]))
+        elem_type = mesh["element_types"][elem_id]
+        println(io, "$elem_id,$elem_type,$(join(connectivity, ','))")
+    end
+end
+println("Exported $(length(mesh["elements"])) elements to elements.csv")
+```
+
+## Example 7: Visualization with Makie.jl (Conceptual)
+
+While AbaqusReader doesn't include visualization, the mesh data can be easily visualized:
+
+```julia
+using AbaqusReader
+# using GLMakie  # Uncomment if you have Makie installed
+
+mesh = abaqus_read_mesh("model.inp")
+
+# Extract node coordinates as a matrix
+node_ids = sort(collect(keys(mesh["nodes"])))
+coords = hcat([mesh["nodes"][id] for id in node_ids]...)'
+
+# For shell or 2D meshes, plot nodes
+# scatter3d(coords[:, 1], coords[:, 2], coords[:, 3], markersize=5)
+
+# For volume meshes, extract surface elements first
+# surface_elems = create_surface_elements(mesh, "OUTER_SURFACE")
+# Then use a mesh plotting function
+
+# Alternatively, export to VTK and use ParaView for visualization
+```
+
+**Tip:** For serious visualization, consider exporting to VTK format and using ParaView, or use Julia packages like Makie.jl or PlotlyJS.jl for interactive 3D plots.
+
+## Example 8: Working with Surface Definitions
+
+Extract and manipulate surface definitions for boundary conditions or loads:
+
+```julia
+using AbaqusReader
+
+mesh = abaqus_read_mesh("model.inp")
+
+# Check what surfaces are defined
+println("Available surfaces:")
+for (surf_name, surf_def) in mesh["surface_sets"]
+    println("  $surf_name: $(length(surf_def)) faces")
+    println("    Type: $(mesh["surface_types"][surf_name])")
+end
+
+# Create explicit surface elements for a specific surface
+surface_name = "LOAD_SURFACE"
+surface_elements = create_surface_elements(mesh, surface_name)
+
+println("\nSurface '$surface_name' details:")
+println("  Number of surface elements: $(length(surface_elements))")
+
+# Extract all unique nodes on the surface
+surface_nodes = Set{Int}()
+for (elem_id, connectivity) in surface_elements
+    union!(surface_nodes, connectivity)
+end
+
+println("  Number of surface nodes: $(length(surface_nodes))")
+println("  Node IDs: $(sort(collect(surface_nodes)))")
+
+# Get coordinates of surface nodes
+surface_coords = [mesh["nodes"][nid] for nid in sort(collect(surface_nodes))]
+println("  First surface node: $(surface_coords[1])")
+
+# This surface node information can be used to:
+# - Apply pressure loads
+# - Define contact surfaces
+# - Extract results at specific locations
+# - Create visualizations of boundaries
+```
 
 ## Working with Specific Element Types
 

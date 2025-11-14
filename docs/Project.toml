@@ -1,2 +1,3 @@
 [deps]
+AbaqusReader = "bc6b9049-e460-56d6-94b4-a597b2c0390d"
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"

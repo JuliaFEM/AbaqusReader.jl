@@ -34,14 +34,14 @@ function create_surface_element(element_type::Symbol, element_side::Symbol,
 
     if !haskey(element_mapping, element_type)
         error("Unable to find surface element for element of type ",
-              "$element_type for side $element_side, update element ",
-              "mapping table.")
+            "$element_type for side $element_side, update element ",
+            "mapping table.")
     end
 
     if !haskey(element_mapping[element_type], element_side)
         error("Unable to find child element side mapping for element ",
-              "of type $element_type for side $element_side, update ",
-              "element mapping table.")
+            "of type $element_type for side $element_side, update ",
+            "element mapping table.")
     end
 
     surfel, surfel_lconn = element_mapping[element_type][element_side]
@@ -50,16 +50,74 @@ function create_surface_element(element_type::Symbol, element_side::Symbol,
 end
 
 """
-    create_surface_elements(mesh, surface_name)
+    create_surface_elements(mesh::Dict, surface_name::String) -> Vector{Tuple{Symbol, Vector{Int}}}
 
-Create surface elements for `surface` using mesh `mesh`.
-Mesh can be obtained by using `abaqus_read_mesh`.
+Create explicit surface elements from an implicit surface definition in an ABAQUS mesh.
+
+ABAQUS surfaces are typically defined implicitly as (element, face) pairs. This function
+converts those implicit definitions into explicit surface elements with their own connectivity,
+which is useful for applying boundary conditions, extracting surface nodes, or visualization.
+
+# Arguments
+- `mesh::Dict`: Mesh dictionary as returned by [`abaqus_read_mesh`](@ref)
+- `surface_name::String`: Name of the surface to extract (must exist in `mesh["surface_sets"]`)
+
+# Returns
+`Vector{Tuple{Symbol, Vector{Int}}}` where each tuple contains:
+- Element type symbol (e.g., `:Tri3`, `:Quad4`) for the surface element
+- Node connectivity vector for that surface element
+
+# Examples
+```julia
+using AbaqusReader
+
+# Read mesh with surface definitions
+mesh = abaqus_read_mesh("model.inp")
+
+# Check available surfaces
+println("Available surfaces: ", keys(mesh["surface_sets"]))
+
+# Create surface elements for a named surface
+surface_elems = create_surface_elements(mesh, "LOAD_SURFACE")
+
+# Extract unique nodes on the surface
+surface_nodes = Set{Int}()
+for (elem_type, connectivity) in surface_elems
+    union!(surface_nodes, connectivity)
+end
+println("Surface has \$(length(surface_nodes)) unique nodes")
+
+# Get coordinates of surface nodes
+surface_coords = [mesh["nodes"][nid] for nid in surface_nodes]
+
+# Apply boundary conditions to surface nodes
+for node_id in surface_nodes
+    # Apply BC at node_id...
+end
+```
+
+# Surface Element Types
+Depending on the parent volume element type and face, surface elements can be:
+- `:Tri3` - 3-node triangle (from tet faces, wedge faces)
+- `:Tri6` - 6-node triangle (from quadratic tet faces)
+- `:Quad4` - 4-node quadrilateral (from hex faces, wedge faces)
+- `:Quad8` - 8-node quadrilateral (from quadratic hex faces)
+
+# See Also
+- [`abaqus_read_mesh`](@ref): Read mesh data containing surface definitions
+- [`abaqus_read_model`](@ref): Read complete model with surfaces
+
+# Notes
+- Surface must exist in `mesh["surface_sets"]` or an error will be thrown
+- The parent elements referenced in the surface definition must exist in the mesh
+- Each (element, face) pair generates one surface element
+- Useful for extracting boundary nodes for applying loads or boundary conditions
 """
 function create_surface_elements(mesh::Dict, surface_name::String)
     surface = mesh["surface_sets"][surface_name]
     elements = mesh["elements"]
     eltypes = mesh["element_types"]
-    result = Tuple{Symbol, Vector{Int}}[]
+    result = Tuple{Symbol,Vector{Int}}[]
     for (elid, side) in surface
         surface_element = create_surface_element(eltypes[elid], side, elements[elid])
         push!(result, surface_element)

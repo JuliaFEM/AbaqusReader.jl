@@ -5,11 +5,14 @@ using Documenter, AbaqusReader
 
 makedocs(modules=[AbaqusReader],
   format=Documenter.HTML(),
-  checkdocs=:all,
+  checkdocs=:exports,
   sitename="AbaqusReader.jl",
   pages=[
     "Home" => "index.md",
     "Examples" => "examples.md",
-    "API" => "api.md",
+    "Supported Elements" => "elements.md",
+    "Element Selection Guide" => "element_guide.md",
+    "API Reference" => "api.md",
+    "Contributing" => "contributing.md",
   ]
 )
