@@ -9,6 +9,7 @@ makedocs(modules=[AbaqusReader],
          sitename = "AbaqusReader.jl",
          pages = [
                   "Home" => "index.md",
+                  "Examples" => "examples.md",
                   "API" => "api.md",
                 ]
         )
