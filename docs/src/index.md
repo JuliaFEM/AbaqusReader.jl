@@ -1,24 +1,35 @@
 # AbaqusReader.jl
 
-ABAQUS input file (.inp) is a very common file format to describe finite element
-models in the industry. The file is used to control the whole numerical
-simulation, including mesh definition, material parameters, and other simulation
-parameters.
+AbaqusReader.jl provides two distinct ways to read ABAQUS `.inp` files, depending on your needs:
 
-`AbaqusReader.jl` is a package designed to parse simulation data defined in the
-ABAQUS input file. The package offers two different approaches to parsing,
-depending on the user's needs. The first one is to parse only mesh data, and
-another approach is a somewhat more complex approach trying to parse the whole
-model.
+## Two Approaches for Two Different Needs
 
-The main commands for package are `abaqus_read_mesh`, which parses only the mesh
-part of the input file and returning a simple dictionary containing all relevant
-mesh data so that user can read the model using own FEM parser. Another command
-is `abaqus_read_model` which is used to read the whole model. Both of the
-commands are demonstrated in the Examples section. It should be pointed out that
-`abaqus_read_model` is highly incomplete as it turned out that it would take a
-huge amount of work to parse an entire model.
+### 1. Mesh-Only Parsing - `abaqus_read_mesh()`
 
-Also, both functions are tested only with "flat" input files, which is the
-original ABAQUS input file structure. The more structured file format,
-describing parts, etc. is not tested with the package.
+When you only need the **geometry and topology** (nodes, elements, sets), use this function.
+It returns a simple dictionary structure containing just the mesh data - perfect for:
+
+- Visualizing geometry
+- Converting meshes to other formats
+- Quick mesh inspection
+- Building your own FEM implementations on top of ABAQUS geometries
+
+### 2. Complete Model Parsing - `abaqus_read_model()`
+
+When you need to **reproduce the entire simulation**, use this function.
+It parses the complete simulation recipe including mesh, materials, boundary conditions,
+load steps, and analysis parameters - everything needed to:
+
+- Fully understand the simulation setup
+- Reproduce the analysis in another solver
+- Extract complete simulation definitions programmatically
+- Analyze or modify simulation parameters
+
+## Important Notes
+
+Both functions are primarily tested with "flat" input files (the original ABAQUS input file structure).
+The more structured file format describing parts, assemblies, etc. may have limited support.
+
+The `abaqus_read_model()` function parses many common ABAQUS features but does not cover every possible
+keyword and option in the ABAQUS specification. It handles typical use cases for extracting complete
+simulation definitions.
