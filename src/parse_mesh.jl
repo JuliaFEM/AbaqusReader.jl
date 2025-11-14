@@ -2,81 +2,27 @@
 # License is MIT: see https://github.com/JuliaFEM/AbaqusReader.jl/blob/master/LICENSE
 
 using Logging
+import TOML
 
-# Define element type and number of nodes - using simple Symbol dispatch
-const ELEMENT_INFO = Dict{Symbol,Tuple{Int,Symbol}}(
-    # 3D solid elements - tetrahedral
-    :C3D4 => (4, :Tet4),
-    :C3D4H => (4, :Tet4),
-    :C3D10 => (10, :Tet10),
-    :C3D10H => (10, :Tet10),
-    :C3D10M => (10, :Tet10),  # Modified 
-    :C3D10R => (10, :Tet10),  # Reduced integration
+# Load element database from TOML file
+function load_element_database()
+    toml_path = joinpath(@__DIR__, "abaqus_elements.toml")
+    element_data = TOML.parsefile(toml_path)
+    
+    # Convert to the format expected by the rest of the code
+    element_info = Dict{Symbol, Tuple{Int, Symbol}}()
+    for (elem_name, elem_props) in element_data
+        elem_symbol = Symbol(elem_name)
+        num_nodes = elem_props["nodes"]
+        elem_type = Symbol(elem_props["type"])
+        element_info[elem_symbol] = (num_nodes, elem_type)
+    end
+    
+    return element_info
+end
 
-    # 3D solid elements - wedge/prism
-    :C3D6 => (6, :Wedge6),
-    :C3D15 => (15, :Wedge15),
-
-    # 3D solid elements - hexahedral
-    :C3D8 => (8, :Hex8),
-    :C3D8H => (8, :Hex8),
-    :C3D8I => (8, :Hex8),  # Incompatible modes
-    :C3D8R => (8, :Hex8),  # Reduced integration
-    :C3D8RH => (8, :Hex8), # Reduced integration + hybrid
-    :C3D20 => (20, :Hex20),
-    :C3D20E => (20, :Hex20),
-    :C3D20H => (20, :Hex20),
-    :C3D20R => (20, :Hex20),
-    :C3D20RH => (20, :Hex20),
-
-    # Cohesive elements
-    :COH3D8 => (8, :Hex8),
-
-    # Shell elements - triangular
-    :S3 => (3, :Tri3),
-    :S3R => (3, :Tri3),
-    :STRI3 => (3, :Tri3),
-    :STRI65 => (6, :Tri6),
-
-    # Shell elements - quadrilateral
-    :S4 => (4, :Quad4),
-    :S4R => (4, :Quad4),
-    :S8R => (8, :Quad8),
-
-    # 2D plane stress elements
-    :CPS3 => (3, :CPS3),
-    :CPS4 => (4, :Quad4),
-    :CPS4R => (4, :Quad4),
-    :CPS4I => (4, :Quad4),
-    :CPS6 => (6, :Tri6),
-    :CPS8 => (8, :Quad8),
-    :CPS8R => (8, :Quad8),
-
-    # 2D plane strain elements
-    :CPE3 => (3, :Tri3),
-    :CPE4 => (4, :Quad4),
-    :CPE4R => (4, :Quad4),
-    :CPE4I => (4, :Quad4),
-    :CPE6 => (6, :Tri6),
-    :CPE8 => (8, :Quad8),
-    :CPE8R => (8, :Quad8),
-
-    # 2D axisymmetric elements
-    :CAX3 => (3, :Tri3),
-    :CAX4 => (4, :Quad4),
-    :CAX4R => (4, :Quad4),
-    :CAX4I => (4, :Quad4),
-    :CAX6 => (6, :Tri6),
-    :CAX8 => (8, :Quad8),
-    :CAX8R => (8, :Quad8),
-
-    # Beam/truss elements
-    :T2D2 => (2, :Seg2),
-    :T3D2 => (2, :Seg2),
-    :B31 => (2, :Seg2),
-    :B32 => (3, :Seg3),
-    :B33 => (2, :Seg2)
-)
+# Load element definitions at module initialization
+const ELEMENT_INFO = load_element_database()
 
 element_has_nodes(eltype::Symbol) = ELEMENT_INFO[eltype][1]
 element_has_type(eltype::Symbol) = ELEMENT_INFO[eltype][2]

@@ -131,7 +131,23 @@ The following ABAQUS element types are currently supported. Note that element va
 - `M` = Modified formulation
 - `E` = Enhanced
 
-Adding new elements is straightforward - element definitions are in a simple dictionary in `/src/parse_mesh.jl`.
+### Adding New Elements
+
+Adding new element types is easy! Element definitions are stored in a TOML file (`src/abaqus_elements.toml`) rather than in code. To add a new element:
+
+1. Open `src/abaqus_elements.toml`
+1. Add an entry following the existing format:
+
+```toml
+[YOUR_ELEMENT]
+nodes = 8
+type = "Hex8"
+description = "Your element description"
+```
+
+1. No code changes needed - the element will be automatically available!
+
+See `src/ELEMENT_DATABASE.md` for detailed instructions on adding elements.
 
 [ci-img]: https://github.com/JuliaFEM/AbaqusReader.jl/workflows/CI/badge.svg
 [ci-url]: https://github.com/JuliaFEM/AbaqusReader.jl/actions?query=workflow%3ACI+branch%3Amaster

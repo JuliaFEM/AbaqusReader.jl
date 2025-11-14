@@ -50,6 +50,19 @@ AbaqusReader.jl is designed around **two distinct use cases** that should never 
 2. Map ABAQUS element name → (num_nodes, generic_type)
 3. That's it. No need for multiple functions.
 
+### When Adding New Element Types
+1. **Don't edit code** - add to `src/abaqus_elements.toml` instead
+2. Find ABAQUS element documentation for node count and topology
+3. Add entry to appropriate section in TOML file:
+   ```toml
+   [ELEMENT_NAME]
+   nodes = <count>
+   type = "<GenericType>"
+   description = "<optional>"
+   ```
+4. Add test in `test/test_parse_mesh.jl` to verify it works
+5. Element is automatically available - no code changes needed!
+
 ### When Adding New Keywords
 1. Add to `RECOGNIZED_KEYWORDS` Set in `parse_model.jl`
 2. Add handler in `maybe_open_section!` or `maybe_close_section!`
@@ -57,7 +70,7 @@ AbaqusReader.jl is designed around **two distinct use cases** that should never 
 4. Keep it straightforward - no Val dispatch needed
 
 ### When Refactoring
-- **Run tests frequently**: All 71 tests must pass
+- **Run tests frequently**: All 96 tests must pass
 - **Check both APIs**: Test both `abaqus_read_mesh` and `abaqus_read_model`
 - **Preserve return types**: Dict structure for mesh, Model object for complete
 - **Commit atomically**: One logical change per commit with clear messages
@@ -69,20 +82,23 @@ AbaqusReader.jl is designed around **two distinct use cases** that should never 
 - ❌ Don't conflate mesh parsing with model parsing
 - ❌ Don't import Base methods without proper extensions
 - ❌ Don't sacrifice clarity for minor performance gains in parsing code
+- ❌ Don't hardcode element types in parse_mesh.jl - use the TOML database
 
 ## File Responsibilities
 
-- **`parse_mesh.jl`**: Mesh-only parsing, element type definitions, simple Dict returns
+- **`abaqus_elements.toml`**: Element type database - easy to extend without code changes
+- **`parse_mesh.jl`**: Mesh-only parsing, loads element database from TOML, simple Dict returns
 - **`parse_model.jl`**: Complete model parsing, type definitions, structured Model returns
 - **`create_surface_elements.jl`**: Extract boundary faces from volume elements
 - **`abaqus_download.jl`**: Download example files from remote sources
 - **`AbaqusReader.jl`**: Main module, exports public API
+- **`ELEMENT_DATABASE.md`**: Documentation for adding new element types
 
 ## Testing Philosophy
 
 - Tests are in `/test` directory
 - All changes must pass: `julia --project=. -e 'using Pkg; Pkg.test()'`
-- 71 tests cover both parsing modes and various element types
+- 96 tests cover both parsing modes and various element types
 - Don't break backward compatibility - tests verify the API contract
 
 ## Common Patterns

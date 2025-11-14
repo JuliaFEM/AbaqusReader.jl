@@ -1,0 +1,306 @@
+# ABAQUS Element Database
+# This file defines the mapping from ABAQUS element types to generic element topology
+# Format: [element_name]
+#         nodes = number of nodes
+#         type = generic element type symbol (as string)
+#         description = optional description
+
+# =============================================================================
+# 3D SOLID ELEMENTS - TETRAHEDRAL
+# =============================================================================
+
+[C3D4]
+nodes = 4
+type = "Tet4"
+description = "4-node linear tetrahedron"
+
+[C3D4H]
+nodes = 4
+type = "Tet4"
+description = "4-node linear tetrahedron, hybrid"
+
+[C3D10]
+nodes = 10
+type = "Tet10"
+description = "10-node quadratic tetrahedron"
+
+[C3D10H]
+nodes = 10
+type = "Tet10"
+description = "10-node quadratic tetrahedron, hybrid"
+
+[C3D10M]
+nodes = 10
+type = "Tet10"
+description = "10-node modified tetrahedron"
+
+[C3D10R]
+nodes = 10
+type = "Tet10"
+description = "10-node tetrahedron, reduced integration"
+
+# =============================================================================
+# 3D SOLID ELEMENTS - WEDGE/PRISM
+# =============================================================================
+
+[C3D6]
+nodes = 6
+type = "Wedge6"
+description = "6-node linear wedge"
+
+[C3D15]
+nodes = 15
+type = "Wedge15"
+description = "15-node quadratic wedge"
+
+# =============================================================================
+# 3D SOLID ELEMENTS - HEXAHEDRAL
+# =============================================================================
+
+[C3D8]
+nodes = 8
+type = "Hex8"
+description = "8-node linear brick"
+
+[C3D8H]
+nodes = 8
+type = "Hex8"
+description = "8-node linear brick, hybrid"
+
+[C3D8I]
+nodes = 8
+type = "Hex8"
+description = "8-node brick, incompatible modes"
+
+[C3D8R]
+nodes = 8
+type = "Hex8"
+description = "8-node brick, reduced integration"
+
+[C3D8RH]
+nodes = 8
+type = "Hex8"
+description = "8-node brick, reduced integration, hybrid"
+
+[C3D20]
+nodes = 20
+type = "Hex20"
+description = "20-node quadratic brick"
+
+[C3D20E]
+nodes = 20
+type = "Hex20"
+description = "20-node quadratic brick, enhanced"
+
+[C3D20H]
+nodes = 20
+type = "Hex20"
+description = "20-node quadratic brick, hybrid"
+
+[C3D20R]
+nodes = 20
+type = "Hex20"
+description = "20-node brick, reduced integration"
+
+[C3D20RH]
+nodes = 20
+type = "Hex20"
+description = "20-node brick, reduced integration, hybrid"
+
+# =============================================================================
+# COHESIVE ELEMENTS
+# =============================================================================
+
+[COH3D8]
+nodes = 8
+type = "Hex8"
+description = "8-node 3D cohesive element"
+
+# =============================================================================
+# SHELL ELEMENTS - TRIANGULAR
+# =============================================================================
+
+[S3]
+nodes = 3
+type = "Tri3"
+description = "3-node triangular shell"
+
+[S3R]
+nodes = 3
+type = "Tri3"
+description = "3-node triangular shell, reduced integration"
+
+[STRI3]
+nodes = 3
+type = "Tri3"
+description = "3-node triangular shell"
+
+[STRI65]
+nodes = 6
+type = "Tri6"
+description = "6-node triangular shell"
+
+# =============================================================================
+# SHELL ELEMENTS - QUADRILATERAL
+# =============================================================================
+
+[S4]
+nodes = 4
+type = "Quad4"
+description = "4-node quadrilateral shell"
+
+[S4R]
+nodes = 4
+type = "Quad4"
+description = "4-node shell, reduced integration"
+
+[S8R]
+nodes = 8
+type = "Quad8"
+description = "8-node shell, reduced integration"
+
+# =============================================================================
+# 2D CONTINUUM - PLANE STRESS (CPS)
+# =============================================================================
+
+[CPS3]
+nodes = 3
+type = "CPS3"
+description = "3-node plane stress triangle"
+
+[CPS4]
+nodes = 4
+type = "Quad4"
+description = "4-node plane stress quad"
+
+[CPS4R]
+nodes = 4
+type = "Quad4"
+description = "4-node plane stress quad, reduced integration"
+
+[CPS4I]
+nodes = 4
+type = "Quad4"
+description = "4-node plane stress quad, incompatible modes"
+
+[CPS6]
+nodes = 6
+type = "Tri6"
+description = "6-node plane stress triangle"
+
+[CPS8]
+nodes = 8
+type = "Quad8"
+description = "8-node plane stress quad"
+
+[CPS8R]
+nodes = 8
+type = "Quad8"
+description = "8-node plane stress quad, reduced integration"
+
+# =============================================================================
+# 2D CONTINUUM - PLANE STRAIN (CPE)
+# =============================================================================
+
+[CPE3]
+nodes = 3
+type = "Tri3"
+description = "3-node plane strain triangle"
+
+[CPE4]
+nodes = 4
+type = "Quad4"
+description = "4-node plane strain quad"
+
+[CPE4R]
+nodes = 4
+type = "Quad4"
+description = "4-node plane strain quad, reduced integration"
+
+[CPE4I]
+nodes = 4
+type = "Quad4"
+description = "4-node plane strain quad, incompatible modes"
+
+[CPE6]
+nodes = 6
+type = "Tri6"
+description = "6-node plane strain triangle"
+
+[CPE8]
+nodes = 8
+type = "Quad8"
+description = "8-node plane strain quad"
+
+[CPE8R]
+nodes = 8
+type = "Quad8"
+description = "8-node plane strain quad, reduced integration"
+
+# =============================================================================
+# 2D CONTINUUM - AXISYMMETRIC (CAX)
+# =============================================================================
+
+[CAX3]
+nodes = 3
+type = "Tri3"
+description = "3-node axisymmetric triangle"
+
+[CAX4]
+nodes = 4
+type = "Quad4"
+description = "4-node axisymmetric quad"
+
+[CAX4R]
+nodes = 4
+type = "Quad4"
+description = "4-node axisymmetric quad, reduced integration"
+
+[CAX4I]
+nodes = 4
+type = "Quad4"
+description = "4-node axisymmetric quad, incompatible modes"
+
+[CAX6]
+nodes = 6
+type = "Tri6"
+description = "6-node axisymmetric triangle"
+
+[CAX8]
+nodes = 8
+type = "Quad8"
+description = "8-node axisymmetric quad"
+
+[CAX8R]
+nodes = 8
+type = "Quad8"
+description = "8-node axisymmetric quad, reduced integration"
+
+# =============================================================================
+# BEAM AND TRUSS ELEMENTS
+# =============================================================================
+
+[T2D2]
+nodes = 2
+type = "Seg2"
+description = "2-node 2D truss"
+
+[T3D2]
+nodes = 2
+type = "Seg2"
+description = "2-node 3D truss"
+
+[B31]
+nodes = 2
+type = "Seg2"
+description = "2-node linear beam"
+
+[B32]
+nodes = 3
+type = "Seg3"
+description = "3-node quadratic beam"
+
+[B33]
+nodes = 2
+type = "Seg2"
+description = "2-node cubic beam"

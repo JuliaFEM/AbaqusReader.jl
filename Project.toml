@@ -5,6 +5,7 @@ version = "0.2.6"
 
 [deps]
 Logging = "56ddb016-857b-54e1-b83d-db4d58db5568"
+TOML = "fa267f1f-6049-4f14-aa54-33bafae1ed76"
 
 [compat]
 julia = "1"
