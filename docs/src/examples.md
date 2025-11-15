@@ -15,7 +15,8 @@ mesh = abaqus_read_mesh("my_model.inp")
 # mesh is a Dict with the following keys:
 # - "nodes": Dict mapping node IDs to coordinates [x, y, z]
 # - "elements": Dict mapping element IDs to connectivity arrays
-# - "element_types": Dict mapping element IDs to element type symbols
+# - "element_types": Dict mapping element IDs to element type symbols (topology)
+# - "element_codes": Dict mapping element IDs to original ABAQUS element names
 # - "node_sets": Dict mapping set names to arrays of node IDs
 # - "element_sets": Dict mapping set names to arrays of element IDs
 # - "surface_sets": Dict mapping surface names to arrays of (element_id, face_symbol) tuples
@@ -33,8 +34,20 @@ volume_elements = mesh["element_sets"]["PART1"]
 # Get element connectivity
 element_1_nodes = mesh["elements"][1]  # Array of node IDs
 
-# Get element type
+# Get element type (topological type, e.g., Tri3, Quad4, Tet4, Hex8)
 element_1_type = mesh["element_types"][1]  # e.g., :Tet4, :Hex8
+
+# Get original ABAQUS element code (e.g., CPS3, CPE3, C3D8R)
+element_1_code = mesh["element_codes"][1]  # e.g., :CPS3, :C3D8R
+
+# Use element codes to determine physics formulation if needed
+if mesh["element_codes"][1] == :CPS3
+    println("Element 1 is plane stress")
+elseif mesh["element_codes"][1] == :CPE3
+    println("Element 1 is plane strain")
+elseif mesh["element_codes"][1] == :CAX3
+    println("Element 1 is axisymmetric")
+end
 ```
 
 ### Use Cases for Mesh-Only Parsing
