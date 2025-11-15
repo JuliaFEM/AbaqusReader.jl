@@ -84,6 +84,7 @@ function parse_section(model, lines, ::Symbol, idx_start, idx_end, ::Type{Val{:E
     element_type = uppercase(m[1])
     eltype_sym = Symbol(element_type)
     eltype_nodes = element_has_nodes(eltype_sym)
+    element_code = eltype_sym  # Store original ABAQUS element code
     element_type = element_has_type(eltype_sym)
     @debug "Parsing elements. Type: $(m[1]). Topology: $element_type"
     list_iterator = consumeList(lines, idx_start + 1, idx_end)
@@ -102,6 +103,7 @@ function parse_section(model, lines, ::Symbol, idx_start, idx_end, ::Type{Val{:E
         end
         model["elements"][id] = connectivity
         model["element_types"][id] = element_type
+        model["element_codes"][id] = element_code
         line = list_iterator()
     end
     add_set!(model, definition, "element_sets", "elset", ids)
@@ -238,6 +240,7 @@ function parse_abaqus(fid::IOStream, verbose::Bool=true)
     model["node_sets"] = Dict{String,Vector{Int}}()
     model["elements"] = Dict{Int,Vector{Int}}()
     model["element_types"] = Dict{Int,Symbol}()
+    model["element_codes"] = Dict{Int,Symbol}()
     model["element_sets"] = Dict{String,Vector{Int}}()
     model["surface_sets"] = Dict{String,Vector{Tuple{Int,Symbol}}}()
     model["surface_types"] = Dict{String,Symbol}()
