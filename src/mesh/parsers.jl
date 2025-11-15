@@ -1,83 +1,12 @@
 # This file is a part of JuliaFEM.
 # License is MIT: see https://github.com/JuliaFEM/AbaqusReader.jl/blob/master/LICENSE
 
-using Logging
-import TOML
-
-# Load element database from TOML file
-function load_element_database()
-    toml_path = joinpath(@__DIR__, "abaqus_elements.toml")
-    element_data = TOML.parsefile(toml_path)
-
-    # Convert to the format expected by the rest of the code
-    element_info = Dict{Symbol,Tuple{Int,Symbol}}()
-    for (elem_name, elem_props) in element_data
-        elem_symbol = Symbol(elem_name)
-        num_nodes = elem_props["nodes"]
-        elem_type = Symbol(elem_props["type"])
-        element_info[elem_symbol] = (num_nodes, elem_type)
-    end
-
-    return element_info
-end
-
-# Load element definitions at module initialization
-const ELEMENT_INFO = load_element_database()
-
-element_has_nodes(eltype::Symbol) = ELEMENT_INFO[eltype][1]
-element_has_type(eltype::Symbol) = ELEMENT_INFO[eltype][2]
-
-# Legacy API for backward compatibility with tests
-element_has_nodes(::Type{Val{T}}) where T = element_has_nodes(T)
-element_has_type(::Type{Val{T}}) where T = element_has_type(T)
-
-"""Checks for a comment or empty line
-
-Returns true if line starts with comment character "**" or is empty
 """
-empty_or_comment_line(line::AbstractString) = startswith(line, "**") || isempty(line)
+    parse_section(model, lines, ::Symbol, idx_start, idx_end, ::Type{Val{:NODE}})
 
-"""Match words from both sides of '=' character
-"""
-function matchset(definition::AbstractString)
-    regexp = r"([\w\_\-]+[ ]*=[ ]*[\w\_\-]+)"
-    return [m.match for m in eachmatch(regexp, definition)]
-end
+Parse NODE section from ABAQUS input file.
 
-"""Parse string to get set type and name
-"""
-function parse_definition(definition::AbstractString)
-    set_defs = Dict{String,String}()
-    set_definition = matchset(definition)
-    isempty(set_definition) && return nothing
-    for x in set_definition
-        name, vals = map(strip, split(x, "="))
-        set_defs[lowercase(name)] = vals
-    end
-    return set_defs
-end
-
-"""Parse all the numbers from string
-"""
-function parse_numbers(line, type_::Type{T})::Vector{T} where {T}
-    regexp = r"[0-9]+"
-    matches = (m.match for m in eachmatch(regexp, line))
-    return map(x -> parse(type_, x), matches)
-end
-
-"""Add set to model, if set exists
-"""
-function add_set!(model, definition, model_key, abaqus_key, ids)
-    has_set_def = parse_definition(definition)
-    has_set_def === nothing && return
-    if haskey(has_set_def, abaqus_key)
-        set_name = has_set_def[abaqus_key]
-        @debug "Adding $abaqus_key: $set_name"
-        model[model_key][set_name] = ids
-    end
-end
-
-"""Parse nodes from the lines
+Extracts node IDs and coordinates, optionally creating a node set if NSET parameter is present.
 """
 function parse_section(model, lines, ::Symbol, idx_start, idx_end, ::Type{Val{:NODE}})
     nnodes = 0
@@ -96,36 +25,13 @@ function parse_section(model, lines, ::Symbol, idx_start, idx_end, ::Type{Val{:N
     add_set!(model, definition, "node_sets", "nset", ids)
 end
 
-"""Custom regex to find match from string. Index used if there are multiple matches
 """
-function regex_match(regex_str::Regex, line::AbstractString, idx::Int)
-    m = match(regex_str, line)
-    return m === nothing ? nothing : m.captures[idx]
-end
+    parse_section(model, lines, ::Symbol, idx_start, idx_end, ::Type{Val{:ELEMENT}})
 
-"""Custom list iterator
+Parse ELEMENT section from ABAQUS input file.
 
-Simple iterator for comsuming element list. Depending
-on the used element, connectivity nodes might be listed
-in multiple lines, which is why iterator is used to handle
-this problem.
-"""
-function consumeList(arr, start, stop)
-    idx = start - 1
-    function _it()
-        idx += 1
-        if idx > stop
-            return nothing
-        end
-        arr[idx]
-    end
-    _it
-end
-
-"""Parse elements from input lines
-
-Reads element ids and their connectivity nodes from input lines.
-If elset definition exists, also adds the set to model.
+Reads element IDs and connectivity nodes. Handles multi-line element definitions where
+connectivity spans multiple lines. Optionally creates element set if ELSET parameter is present.
 """
 function parse_section(model, lines, ::Symbol, idx_start, idx_end, ::Type{Val{:ELEMENT}})
     ids = Int[]
@@ -159,7 +65,12 @@ function parse_section(model, lines, ::Symbol, idx_start, idx_end, ::Type{Val{:E
     add_set!(model, definition, "element_sets", "elset", ids)
 end
 
-"""Parse node and elementset from input lines
+"""
+    parse_section(model, lines, key, idx_start, idx_end, ::Union{Type{Val{:NSET}},Type{Val{:ELSET}}})
+
+Parse NSET or ELSET section from ABAQUS input file.
+
+Handles both explicit ID lists and GENERATE keyword for creating sets.
 """
 function parse_section(model, lines, key, idx_start, idx_end, ::Union{Type{Val{:NSET}},Type{Val{:ELSET}}})
     data = Int[]
@@ -190,7 +101,12 @@ function parse_section(model, lines, key, idx_start, idx_end, ::Union{Type{Val{:
     model[selected_set][set_name] = data
 end
 
-"""Parse SURFACE keyword
+"""
+    parse_section(model, lines, ::Symbol, idx_start, idx_end, ::Type{Val{:SURFACE}})
+
+Parse SURFACE section from ABAQUS input file.
+
+Extracts surface definitions as (element_id, face_id) pairs.
 """
 function parse_section(model, lines, ::Symbol, idx_start, idx_end, ::Type{Val{:SURFACE}})
     data = Vector{Tuple{Int,Symbol}}()
@@ -213,7 +129,12 @@ function parse_section(model, lines, ::Symbol, idx_start, idx_end, ::Type{Val{:S
     return
 end
 
-"""Find lines which contain keywords, for example "*NODE"
+"""
+    find_keywords(lines::Vector) -> Vector{Int}
+
+Find lines which contain keywords (start with single asterisk, not double).
+
+Returns vector of line indices where keywords are found.
 """
 function find_keywords(lines::Vector)
     indexes = Int[]
@@ -225,10 +146,13 @@ function find_keywords(lines::Vector)
     return indexes
 end
 
-"""Main function for parsing Abaqus input file.
+"""
+    parse_abaqus(fid::IOStream, verbose::Bool=true) -> Dict
 
-Function parses Abaqus input file and generates a dictionary of
-all the available keywords.
+Main parser function for ABAQUS mesh input files.
+
+Reads all lines, finds keyword sections, and dispatches to appropriate section parsers.
+Returns a dictionary with mesh data structure.
 """
 function parse_abaqus(fid::IOStream, verbose::Bool=true)
     model = Dict{String,Dict}()
@@ -276,60 +200,21 @@ function parse_abaqus(fid::IOStream, verbose::Bool=true)
 end
 
 """
-    abaqus_read_mesh(fn::String) -> Dict
+    consumeList(arr, start, stop) -> Function
 
-Read ABAQUS `.inp` file and extract mesh geometry and topology.
+Create an iterator for consuming lines from an array.
 
-This function performs **mesh-only parsing**, extracting nodes, elements, sets, and surfaces
-without parsing materials, boundary conditions, or analysis steps. Use this when you only need
-the geometric structure of the model.
-
-# Arguments
-- `fn::String`: Path to the ABAQUS input file (`.inp`)
-
-# Returns
-A `Dict{String, Any}` containing:
-- `"nodes"`: `Dict{Int, Vector{Float64}}` - Node ID → coordinates [x, y, z]
-- `"elements"`: `Dict{Int, Vector{Int}}` - Element ID → node connectivity
-- `"element_types"`: `Dict{Int, Symbol}` - Element ID → element type (e.g., `:Tet4`, `:Hex8`)
-- `"node_sets"`: `Dict{String, Vector{Int}}` - Node set name → node IDs
-- `"element_sets"`: `Dict{String, Vector{Int}}` - Element set name → element IDs
-- `"surface_sets"`: `Dict{String, Vector{Tuple{Int, Symbol}}}` - Surface name → (element, face) pairs
-- `"surface_types"`: `Dict{String, Symbol}` - Surface name → surface type (e.g., `:ELEMENT`)
-
-# Examples
-```julia
-using AbaqusReader
-
-# Read mesh from file
-mesh = abaqus_read_mesh("model.inp")
-
-# Access node coordinates
-coords = mesh["nodes"][1]  # [x, y, z] for node 1
-
-# Get element connectivity
-elem_nodes = mesh["elements"][1]  # Node IDs for element 1
-
-# Get element type
-elem_type = mesh["element_types"][1]  # e.g., :Hex8
-
-# Get nodes in a set
-boundary_nodes = mesh["node_sets"]["BOUNDARY"]
-```
-
-# See Also
-- [`abaqus_read_model`](@ref): Read complete model including materials and boundary conditions
-- [`create_surface_elements`](@ref): Extract surface elements from surface definitions
-
-# Notes
-- Supports 60+ ABAQUS element types (see documentation for full list)
-- Returns simple dictionary structure for easy manipulation
-- Much faster than `abaqus_read_model` when only mesh is needed
-- Element types are mapped to generic topology (e.g., `C3D8R` → `:Hex8`)
+Used for handling multi-line element definitions where connectivity
+nodes might span multiple lines.
 """
-function abaqus_read_mesh(fn::String; kwargs...)
-    verbose = get(kwargs, :verbose, true)
-    return open(fn) do fid
-        parse_abaqus(fid, verbose)
+function consumeList(arr, start, stop)
+    idx = start - 1
+    function _it()
+        idx += 1
+        if idx > stop
+            return nothing
+        end
+        arr[idx]
     end
+    _it
 end

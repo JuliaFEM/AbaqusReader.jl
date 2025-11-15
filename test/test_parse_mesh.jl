@@ -184,7 +184,7 @@ end
     parse_section(model, data, :ELEMENT, 1, 2, Val{:ELEMENT})
     @test haskey(model, "elements")
     @test haskey(model, "element_types")
-    @test model["element_types"][1] == :Poin1
+    @test model["element_types"][1] == :Poi1
     @test model["elements"][1] == [100]
     @test length(model["elements"][1]) == 1
 end

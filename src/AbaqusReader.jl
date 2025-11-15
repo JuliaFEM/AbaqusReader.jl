@@ -3,11 +3,27 @@
 
 module AbaqusReader
 
-include("parse_mesh.jl")
-include("parse_model.jl")
+using Logging
+import TOML
+
+# Mesh parsing module
+include("mesh/element_database.jl")
+include("mesh/utilities.jl")
+include("mesh/parsers.jl")
+include("mesh/reader.jl")
+
+# Model parsing module
+include("model/types.jl")
+include("model/state.jl")
+include("model/keywords.jl")
+include("model/sections.jl")
+include("model/reader.jl")
+
+# Utilities
 include("create_surface_elements.jl")
 include("abaqus_download.jl")
 
+# Export public API
 export abaqus_read_mesh, abaqus_read_model, create_surface_elements
 export abaqus_download
 
