@@ -60,11 +60,10 @@ Map your ABAQUS element to one of these generic types based on topology:
 
 **2D Continuum:**
 
-- `"Tri3"` - 3-node triangle (plane strain, axisymmetric)
+- `"Tri3"` - 3-node triangle
 - `"Tri6"` - 6-node triangle
 - `"Quad4"` - 4-node quadrilateral
 - `"Quad8"` - 8-node quadrilateral
-- `"CPS3"` - 3-node plane stress triangle (special case)
 
 **Beam/Truss:**
 
@@ -73,8 +72,9 @@ Map your ABAQUS element to one of these generic types based on topology:
 
 **Note:** Elements with the same node count and topology map to the same generic
 type. For example, `C3D8`, `C3D8R`, `C3D8H`, and `C3D8I` all map to `"Hex8"`
-since they're all 8-node hexahedra. AbaqusReader focuses on mesh topology, not
-analysis formulation details.
+since they're all 8-node hexahedra. Similarly, `CPS3` (plane stress), `CPE3`
+(plane strain), and `CAX3` (axisymmetric) all map to `"Tri3"` since they're all
+3-node triangles. AbaqusReader focuses on mesh topology, not analysis formulation.
 
 #### 4. Add a Test
 
