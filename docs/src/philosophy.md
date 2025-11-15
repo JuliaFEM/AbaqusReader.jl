@@ -1,5 +1,7 @@
 # Philosophy: ABAQUS as a Warning Example
 
+![ABAQUS Design Philosophy - Separation of Concerns](assets/hero-image.webp)
+
 ## Our Position
 
 **ABAQUS element design is a cautionary tale in software engineering.**
