@@ -12,6 +12,7 @@ makedocs(modules=[AbaqusReader],
     "Philosophy" => "philosophy.md",
     "Examples" => "examples.md",
     "Supported Elements" => "elements.md",
+    "Element Database" => "element_database.md",
     "API Reference" => "api.md",
     "Contributing" => "contributing.md",
   ]
