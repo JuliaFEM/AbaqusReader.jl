@@ -5,22 +5,28 @@
 [![docs-stable][docs-stable-img]][docs-stable-url]
 [![docs-dev][docs-dev-img]][docs-dev-url]
 
-AbaqusReader.jl provides two distinct ways to read ABAQUS `.inp` files, depending on your needs:
+AbaqusReader.jl provides two distinct ways to read ABAQUS `.inp` files, depending on your needs.
+
+**Design Philosophy**: We provide **topology** (geometry and connectivity), not **physics** (formulations and behavior). Read [our design philosophy](docs/src/design_philosophy.md) for why we reject ABAQUS's element proliferation and use clean topological types instead.
 
 ## Two Approaches for Two Different Needs
 
 ### 1. **Mesh-Only Parsing** - `abaqus_read_mesh()`
+
 When you only need the **geometry and topology** (nodes, elements, sets), use this function. 
 It returns a simple dictionary structure containing just the mesh data - perfect for:
+
 - Visualizing geometry
 - Converting meshes to other formats
 - Quick mesh inspection
 - Building your own FEM implementations on top of ABAQUS geometries
 
 ### 2. **Complete Model Parsing** - `abaqus_read_model()`
+
 When you need to **reproduce the entire simulation**, use this function.
 It parses the complete simulation recipe including mesh, materials, boundary conditions, 
 load steps, and analysis parameters - everything needed to:
+
 - Fully understand the simulation setup
 - Reproduce the analysis in another solver
 - Extract complete simulation definitions programmatically
@@ -72,6 +78,43 @@ This returns an `AbaqusReader.Model` instance containing the complete simulation
 - **Steps**: Analysis steps with their specific conditions and outputs
 
 With this complete model, you have everything needed to reproduce the simulation.
+
+## Element Types: Topology, Not Physics
+
+**Key Design Decision**: We use **topological types** (Tri3, Quad4, Tet4, Hex8) instead of ABAQUS's physics-specific names (CPS3, CPE3, CAX3).
+
+> ⚠️ **ABAQUS element design is a warning example in software engineering.** From a computer science perspective, their approach violates separation of concerns and demonstrates what NOT to do. We're proud software engineers, and we don't replicate bad design.
+
+### The Problem with ABAQUS's Approach
+
+ABAQUS defines 100+ element types by mixing **orthogonal concerns**:
+
+- `CPS3` = plane stress triangle
+- `CPE3` = plane strain triangle  
+- `CAX3` = axisymmetric triangle
+
+All three have **identical topology** (3 nodes, triangular) but different **physics formulations**. 
+
+Modern languages (Julia, C++, Rust) solve this with **templates, traits, or multiple dispatch** - keeping concerns separate and composable. ABAQUS is stuck in 1970s procedural thinking.
+
+### Our Solution
+
+We separate these concerns properly:
+
+- **Topology** (what we provide): Geometric shape and connectivity → `Tri3`
+- **Physics** (user's domain): Stress state, material model → compose via multiple dispatch
+
+This gives you:
+
+- ✓ **Correct architecture**: Orthogonal concerns stay separated
+- ✓ **Modern design**: Uses language features, not nomenclature hacks
+- ✓ **Linear complexity**: 10-20 types instead of 100+
+- ✓ **Solver-agnostic**: Works with any FEM code
+- ✓ **Extensible**: Add physics without touching topology
+
+**Original ABAQUS names are preserved** in metadata for traceability.
+
+See [Design Philosophy](docs/src/design_philosophy.md) for why ABAQUS is a cautionary tale and how modern software does it right.
 
 ## Supported Elements
 
@@ -160,4 +203,3 @@ See `src/ELEMENT_DATABASE.md` for detailed instructions on adding elements.
 
 [docs-dev-img]: https://img.shields.io/badge/docs-latest-blue.svg
 [docs-dev-url]: https://juliafem.github.io/AbaqusReader.jl/latest
-
