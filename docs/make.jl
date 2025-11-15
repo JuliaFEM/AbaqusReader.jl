@@ -4,9 +4,18 @@
 using Documenter, AbaqusReader
 
 makedocs(modules=[AbaqusReader],
-  format=Documenter.HTML(),
+  format=Documenter.HTML(
+    prettyurls=get(ENV, "CI", "false") == "true",
+    canonical="https://ahojukka5.github.io/AbaqusReader.jl",
+    assets=String["assets/custom.css"],
+    collapselevel=1,
+    footer="AbaqusReader.jl - Modern FEM mesh parser for Julia",
+    edit_link="master",
+    ansicolor=true,
+  ),
   checkdocs=:exports,
   sitename="AbaqusReader.jl",
+  authors="Jukka Aho and contributors",
   pages=[
     "Home" => "index.md",
     "Philosophy" => "philosophy.md",
