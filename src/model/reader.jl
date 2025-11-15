@@ -106,5 +106,18 @@ function abaqus_read_model(fn::String)
     close(fid)
     maybe_close_section!(model, state)
 
+    # Validate model has minimum required content
+    if isempty(model.mesh.nodes)
+        error("Model has no nodes defined. Cannot continue with empty mesh.")
+    end
+
+    if isempty(model.mesh.elements)
+        error("Model has no elements defined. Cannot continue with empty mesh.")
+    end
+
+    if isempty(model.materials) && !isempty(model.properties)
+        @warn "Model has section properties but no materials defined. This may indicate parsing issues."
+    end
+
     return model
 end
