@@ -9,7 +9,7 @@
 
 AbaqusReader.jl provides two distinct ways to read ABAQUS `.inp` files, depending on your needs.
 
-**Design Philosophy**: We provide **topology** (geometry and connectivity), not **physics** (formulations and behavior). Read [our design philosophy](docs/src/design_philosophy.md) for why we reject ABAQUS's element proliferation and use clean topological types instead.
+**Design Philosophy**: We provide **topology** (geometry and connectivity), not **physics** (formulations and behavior). Read [our design philosophy](docs/src/philosophy.md) for why we reject ABAQUS's element proliferation and use clean topological types instead.
 
 ## Two Approaches for Two Different Needs
 
@@ -116,7 +116,7 @@ This gives you:
 
 **Original ABAQUS names are preserved** in metadata for traceability.
 
-See [Design Philosophy](docs/src/design_philosophy.md) for why ABAQUS is a cautionary tale and how modern software does it right.
+See [Design Philosophy](docs/src/philosophy.md) for why ABAQUS is a cautionary tale and how modern software does it right.
 
 ## Supported Elements
 
