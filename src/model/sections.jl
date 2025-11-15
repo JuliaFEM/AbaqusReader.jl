@@ -14,7 +14,9 @@ function maybe_close_section!(model, state)
     @debug "Close section: $section_name"
 
     # Direct dispatch based on section name
-    if section_name == "SOLID SECTION"
+    if section_name == "HEADING"
+        close_heading!(model, state)
+    elseif section_name == "SOLID SECTION"
         close_solid_section!(model, state)
     elseif section_name == "SHELL SECTION"
         close_shell_section!(model, state)
@@ -56,7 +58,9 @@ function maybe_open_section!(model, state)
     @debug "New section: $section_name with options $section_options"
 
     # Direct dispatch based on section name
-    if section_name == "SOLID SECTION"
+    if section_name == "HEADING"
+        open_heading!(model, state)
+    elseif section_name == "SOLID SECTION"
         open_solid_section!(model, state)
     elseif section_name == "SHELL SECTION"
         open_shell_section!(model, state)
@@ -112,6 +116,31 @@ function process_line!(model, state, line::String)
         return
     end
     push!(state.data, line)
+end
+
+# =============================================================================
+# Section Handlers - Model Description
+# =============================================================================
+
+"""
+    open_heading!(model, state)
+
+Open HEADING section and store heading text.
+"""
+function open_heading!(model, state)
+    # Heading text is on subsequent lines
+    @debug "HEADING section opened"
+end
+
+"""
+    close_heading!(model, state)
+
+Close HEADING section and store text in model.
+"""
+function close_heading!(model, state)
+    if length(state.data) > 0
+        model.heading = join(state.data, "\n")
+    end
 end
 
 # =============================================================================
