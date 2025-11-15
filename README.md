@@ -1,6 +1,6 @@
 # AbaqusReader.jl - parse ABAQUS input files to Julia
 
-![AbaqusReader.jl - Modern FEM Mesh Parser](docs/assets/images/readme-hero.webp)
+![AbaqusReader.jl - Modern FEM Mesh Parser](docs/src/assets/readme-hero.webp)
 
 [![ci][ci-img]][ci-url]
 [![codecov][coverage-img]][coverage-url]
