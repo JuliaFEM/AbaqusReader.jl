@@ -9,9 +9,9 @@ makedocs(modules=[AbaqusReader],
   sitename="AbaqusReader.jl",
   pages=[
     "Home" => "index.md",
+    "Philosophy" => "philosophy.md",
     "Examples" => "examples.md",
     "Supported Elements" => "elements.md",
-    "Element Selection Guide" => "element_guide.md",
     "API Reference" => "api.md",
     "Contributing" => "contributing.md",
   ]
