@@ -87,7 +87,7 @@ function abaqus_read_model(fn::String)
 
     # Initialize model
     materials = Dict()
-    model = Model(model_path, model_name, mesh, materials, [], [], [])
+    model = Model(model_path, model_name, nothing, mesh, materials, [], [], [])
 
     # Initialize parser state
     state = AbaqusReaderState(nothing, nothing, nothing, nothing, [])
