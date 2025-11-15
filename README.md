@@ -1,5 +1,7 @@
 # AbaqusReader.jl - parse ABAQUS input files to Julia
 
+![AbaqusReader.jl - Modern FEM Mesh Parser](docs/assets/images/readme-hero.webp)
+
 [![ci][ci-img]][ci-url]
 [![codecov][coverage-img]][coverage-url]
 [![docs-stable][docs-stable-img]][docs-stable-url]
@@ -192,14 +194,14 @@ description = "Your element description"
 
 See `src/ELEMENT_DATABASE.md` for detailed instructions on adding elements.
 
-[ci-img]: https://github.com/JuliaFEM/AbaqusReader.jl/workflows/CI/badge.svg
-[ci-url]: https://github.com/JuliaFEM/AbaqusReader.jl/actions?query=workflow%3ACI+branch%3Amaster
+[ci-img]: https://github.com/ahojukka5/AbaqusReader.jl/workflows/CI/badge.svg
+[ci-url]: https://github.com/ahojukka5/AbaqusReader.jl/actions?query=workflow%3ACI+branch%3Amaster
 
-[coverage-img]: https://codecov.io/gh/JuliaFEM/AbaqusReader.jl/branch/master/graph/badge.svg?token=3aZGJjDsY9
-[coverage-url]: https://codecov.io/gh/JuliaFEM/AbaqusReader.jl
+[coverage-img]: https://codecov.io/gh/ahojukka5/AbaqusReader.jl/branch/master/graph/badge.svg?token=3aZGJjDsY9
+[coverage-url]: https://codecov.io/gh/ahojukka5/AbaqusReader.jl
 
 [docs-stable-img]: https://img.shields.io/badge/docs-stable-blue.svg
-[docs-stable-url]: https://juliafem.github.io/AbaqusReader.jl/stable
+[docs-stable-url]: https://ahojukka5.github.io/AbaqusReader.jl/stable
 
 [docs-dev-img]: https://img.shields.io/badge/docs-latest-blue.svg
-[docs-dev-url]: https://juliafem.github.io/AbaqusReader.jl/latest
+[docs-dev-url]: https://ahojukka5.github.io/AbaqusReader.jl/latest
