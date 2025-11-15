@@ -30,6 +30,7 @@ end
     model["elements"] = Dict{Int,Vector{Int}}()
     model["element_sets"] = Dict{String,Vector{Int}}()
     model["element_types"] = Dict{Int,Symbol}()
+    model["element_codes"] = Dict{Int,Symbol}()
     parse_section(model, data, :ELEMENT, 1, 5, Val{:ELEMENT})
     @test length(model["elements"]) == 2
     @test model["element_sets"]["BEAM"] == [1, 2]
@@ -181,6 +182,7 @@ end
     model["elements"] = Dict{Int,Vector{Int}}()
     model["element_sets"] = Dict{String,Vector{Int}}()
     model["element_types"] = Dict{Int,Symbol}()
+    model["element_codes"] = Dict{Int,Symbol}()
     parse_section(model, data, :ELEMENT, 1, 2, Val{:ELEMENT})
     @test haskey(model, "elements")
     @test haskey(model, "element_types")
