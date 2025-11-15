@@ -16,12 +16,26 @@ function maybe_close_section!(model, state)
     # Direct dispatch based on section name
     if section_name == "SOLID SECTION"
         close_solid_section!(model, state)
+    elseif section_name == "SHELL SECTION"
+        close_shell_section!(model, state)
+    elseif section_name == "MASS"
+        close_mass_section!(model, state)
     elseif section_name == "ELASTIC"
         close_elastic!(model, state)
+    elseif section_name == "DENSITY"
+        close_density!(model, state)
+    elseif section_name == "PLASTIC"
+        close_plastic!(model, state)
+    elseif section_name == "EXPANSION"
+        close_expansion!(model, state)
+    elseif section_name == "DAMPING"
+        close_damping!(model, state)
     elseif section_name in ("BOUNDARY", "CLOAD", "DLOAD", "DSLOAD")
         close_boundary_condition!(model, state)
-    elseif section_name in ("NODE PRINT", "EL PRINT", "SECTION PRINT")
+    elseif section_name in ("NODE PRINT", "EL PRINT", "SECTION PRINT", "NODE FILE", "EL FILE", "CONTACT FILE")
         close_output_request!(model, state)
+    elseif section_name in ("NODE OUTPUT", "ELEMENT OUTPUT", "ENERGY OUTPUT", "CONTACT OUTPUT")
+        close_output_definition!(model, state)
     else
         @debug "No close handler for $section_name"
     end
@@ -44,12 +58,20 @@ function maybe_open_section!(model, state)
     # Direct dispatch based on section name
     if section_name == "SOLID SECTION"
         open_solid_section!(model, state)
+    elseif section_name == "SHELL SECTION"
+        open_shell_section!(model, state)
+    elseif section_name == "MASS"
+        open_mass_section!(model, state)
     elseif section_name == "MATERIAL"
         open_material!(model, state)
     elseif section_name == "STEP"
         open_step!(model, state)
     elseif section_name == "STATIC"
         open_static!(model, state)
+    elseif section_name == "FREQUENCY"
+        open_frequency!(model, state)
+    elseif section_name == "OUTPUT"
+        open_output!(model, state)
     elseif section_name == "END STEP"
         open_end_step!(model, state)
     else
@@ -104,7 +126,8 @@ Open SOLID SECTION and create property linking element set to material.
 function open_solid_section!(model, state)
     element_set = Symbol(get_option(state, "ELSET"))
     material_name = Symbol(get_option(state, "MATERIAL"))
-    property = SolidSection(element_set, material_name)
+    controls = haskey(get_options(state), "CONTROLS") ? Symbol(get_option(state, "CONTROLS")) : nothing
+    property = SolidSection(element_set, material_name, controls)
     state.property = property
     push!(model.properties, property)
 end
@@ -115,6 +138,71 @@ end
 Close SOLID SECTION (no data to process).
 """
 function close_solid_section!(model, state)
+    state.property = nothing
+end
+
+"""
+    open_shell_section!(model, state)
+
+Open SHELL SECTION and create shell property.
+"""
+function open_shell_section!(model, state)
+    element_set = Symbol(get_option(state, "ELSET"))
+    material_name = Symbol(get_option(state, "MATERIAL"))
+    state.property = :SHELL_PENDING  # Will be completed in close
+end
+
+"""
+    close_shell_section!(model, state)
+
+Close SHELL SECTION and process thickness data.
+"""
+function close_shell_section!(model, state)
+    if length(state) > 0
+        data = first(get_data(state))
+        thickness = data[1]
+        num_points = length(data) > 1 ? Int(data[2]) : 5
+    else
+        thickness = 1.0
+        num_points = 5
+    end
+
+    options = get_options(state)
+    element_set = Symbol(options["ELSET"])
+    material_name = Symbol(options["MATERIAL"])
+
+    property = ShellSection(element_set, material_name, thickness, num_points)
+    push!(model.properties, property)
+    state.property = nothing
+end
+
+"""
+    open_mass_section!(model, state)
+
+Open MASS section.
+"""
+function open_mass_section!(model, state)
+    state.property = :MASS_PENDING
+end
+
+"""
+    close_mass_section!(model, state)
+
+Close MASS section and process mass data.
+"""
+function close_mass_section!(model, state)
+    if length(state) > 0
+        data = first(get_data(state))
+        mass_value = data[1]
+    else
+        mass_value = 1.0
+    end
+
+    options = get_options(state)
+    element_set = Symbol(options["ELSET"])
+
+    property = MassSection(element_set, mass_value)
+    push!(model.properties, property)
     state.property = nothing
 end
 
@@ -148,6 +236,67 @@ function close_elastic!(model, state)
     push!(material.properties, material_property)
 end
 
+"""
+    close_density!(model, state)
+
+Close DENSITY section and add density to current material.
+"""
+function close_density!(model, state)
+    @assert length(state) == 1
+    density = first(first(get_data(state)))
+    material_property = Density(density)
+    material = state.material
+    @assert material !== nothing
+    push!(material.properties, material_property)
+end
+
+"""
+    close_plastic!(model, state)
+
+Close PLASTIC section and add plasticity data to current material.
+"""
+function close_plastic!(model, state)
+    table = Tuple{Float64,Float64}[]
+    for row in get_data(state)
+        stress = row[1]
+        strain = row[2]
+        push!(table, (stress, strain))
+    end
+    material_property = Plastic(table)
+    material = state.material
+    @assert material !== nothing
+    push!(material.properties, material_property)
+end
+
+"""
+    close_expansion!(model, state)
+
+Close EXPANSION section and add thermal expansion to current material.
+"""
+function close_expansion!(model, state)
+    @assert length(state) == 1
+    alpha = first(first(get_data(state)))
+    material_property = Expansion(alpha)
+    material = state.material
+    @assert material !== nothing
+    push!(material.properties, material_property)
+end
+
+"""
+    close_damping!(model, state)
+
+Close DAMPING section and add damping to current material.
+"""
+function close_damping!(model, state)
+    options = get_options(state)
+    alpha = haskey(options, "ALPHA") ? parse(Float64, options["ALPHA"]) : 0.0
+    beta = haskey(options, "BETA") ? parse(Float64, options["BETA"]) : 0.0
+    material_property = Damping(alpha, beta)
+    material = state.material
+    @assert material !== nothing
+    push!(material.properties, material_property)
+end
+
 # =============================================================================
 # Section Handlers - Steps
 # =============================================================================
@@ -158,7 +307,10 @@ end
 Open STEP section and create new analysis step.
 """
 function open_step!(model, state)
-    step_ = Step(nothing, Vector(), Vector())
+    options = get_options(state)
+    step_name = haskey(options, "NAME") ? options["NAME"] : nothing
+    step_options = Dict(options)
+    step_ = Step(step_name, nothing, step_options, Vector(), Vector())
     state.step = step_
     push!(model.steps, step_)
 end
@@ -171,6 +323,26 @@ Mark current step as STATIC analysis.
 function open_static!(model, state)
     state.step === nothing && error("*STATIC outside *STEP ?")
     state.step.kind = :STATIC
+end
+
+"""
+    open_frequency!(model, state)
+
+Mark current step as FREQUENCY analysis.
+"""
+function open_frequency!(model, state)
+    state.step === nothing && error("*FREQUENCY outside *STEP ?")
+    state.step.kind = :FREQUENCY
+end
+
+"""
+    open_output!(model, state)
+
+Open OUTPUT section (just marks section type, actual output definitions follow).
+"""
+function open_output!(model, state)
+    # OUTPUT is a container, actual definitions come in sub-keywords
+    @debug "OUTPUT section opened"
 end
 
 """
@@ -217,10 +389,40 @@ Close output request section (NODE PRINT, EL PRINT, NODE FILE, EL FILE).
 Adds output request to current step.
 """
 function close_output_request!(model, state)
-    kind, target = map(Meta.parse, split(state.section.name, " "))
-    data = get_data(state)
+    parts = split(state.section.name, " ")
+    if length(parts) == 2
+        kind, target = map(Symbol, parts)
+    else
+        kind = Symbol(parts[1])
+        target = :UNKNOWN
+    end
+
+    data = length(state) > 0 ? get_data(state) : []
     options = get_options(state)
-    request = OutputRequest(Symbol(kind), data, options, Symbol(target))
-    @assert state.step !== nothing
-    push!(state.step.output_requests, request)
+    request = OutputRequest(kind, data, options, target)
+
+    if state.step !== nothing
+        push!(state.step.output_requests, request)
+    else
+        @debug "Output request outside step - ignoring"
+    end
+end
+
+"""
+    close_output_definition!(model, state)
+
+Close output definition section (NODE OUTPUT, ELEMENT OUTPUT within OUTPUT block).
+"""
+function close_output_definition!(model, state)
+    # Similar to output_request but for OUTPUT, FIELD/HISTORY block
+    parts = split(state.section.name, " ")
+    kind = Symbol(join(parts, "_"))
+
+    data = length(state) > 0 ? get_data(state) : []
+    options = get_options(state)
+    request = OutputRequest(kind, data, options, :FIELD)
+
+    if state.step !== nothing
+        push!(state.step.output_requests, request)
+    end
 end
