@@ -52,6 +52,12 @@ using AbaqusReader
         @test step.name == "APPLY_LOAD"
         @test step.kind == :STATIC
 
+        # Verify STATIC parameters are captured (initial_inc, total_time)
+        @test step.parameters !== nothing
+        @test length(step.parameters) >= 2
+        @test step.parameters[1] == 0.1  # initial time increment
+        @test step.parameters[2] == 1.0  # total time period
+
         # Validate boundary conditions (defined within step)
         @test length(step.boundary_conditions) > 0
     end
@@ -82,6 +88,11 @@ using AbaqusReader
         @test length(model.steps) == 1
         @test model.steps[1].name == "MODAL_ANALYSIS"
         @test model.steps[1].kind == :FREQUENCY
+
+        # Verify FREQUENCY parameters (number of eigenvalues)
+        @test model.steps[1].parameters !== nothing
+        @test length(model.steps[1].parameters) >= 1
+        @test model.steps[1].parameters[1] == 10.0  # 10 eigenvalues requested
     end
 
     @testset "Plastic analysis - Nonlinear" begin
@@ -115,6 +126,14 @@ using AbaqusReader
         # Check NLGEOM option
         @test haskey(model.steps[1].options, "NLGEOM")
         @test model.steps[1].options["NLGEOM"] == "YES"
+
+        # Verify STATIC parameters for first step (initial_inc, total_time, min_inc, max_inc)
+        @test model.steps[1].parameters !== nothing
+        @test length(model.steps[1].parameters) == 4
+        @test model.steps[1].parameters[1] == 0.01   # initial time increment
+        @test model.steps[1].parameters[2] == 1.0    # total time period
+        @test model.steps[1].parameters[3] == 1.0e-8 # minimum time increment
+        @test model.steps[1].parameters[4] == 0.1    # maximum time increment
     end
 
     @testset "Shell analysis" begin

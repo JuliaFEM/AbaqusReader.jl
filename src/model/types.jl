@@ -207,6 +207,7 @@ Analysis step definition.
 - `name::Union{String,Nothing}` - Step name
 - `kind::Union{Symbol,Nothing}` - Step type (e.g., :STATIC, :FREQUENCY)
 - `options::Dict` - Step options (NLGEOM, INC, PERTURBATION, etc.)
+- `parameters::Union{Vector{Float64},Nothing}` - Procedure parameters (time increments, etc.)
 - `boundary_conditions::Vector{AbstractBoundaryCondition}` - Step-specific BCs
 - `output_requests::Vector{AbstractOutputRequest}` - Output requests for this step
 """
@@ -214,6 +215,7 @@ mutable struct Step <: AbstractStep
     name::Union{String,Nothing}
     kind::Union{Symbol,Nothing}
     options::Dict
+    parameters::Union{Vector{Float64},Nothing}
     boundary_conditions::Vector{AbstractBoundaryCondition}
     output_requests::Vector{AbstractOutputRequest}
 end

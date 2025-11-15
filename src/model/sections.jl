@@ -32,6 +32,10 @@ function maybe_close_section!(model, state)
         close_expansion!(model, state)
     elseif section_name == "DAMPING"
         close_damping!(model, state)
+    elseif section_name == "STATIC"
+        close_static!(model, state)
+    elseif section_name == "FREQUENCY"
+        close_frequency!(model, state)
     elseif section_name in ("BOUNDARY", "CLOAD", "DLOAD", "DSLOAD")
         close_boundary_condition!(model, state)
     elseif section_name in ("NODE PRINT", "EL PRINT", "SECTION PRINT", "NODE FILE", "EL FILE", "CONTACT FILE")
@@ -339,7 +343,7 @@ function open_step!(model, state)
     options = get_options(state)
     step_name = haskey(options, "NAME") ? options["NAME"] : nothing
     step_options = Dict(options)
-    step_ = Step(step_name, nothing, step_options, Vector(), Vector())
+    step_ = Step(step_name, nothing, step_options, nothing, Vector(), Vector())
     state.step = step_
     push!(model.steps, step_)
 end
@@ -347,7 +351,13 @@ end
 """
     open_static!(model, state)
 
-Mark current step as STATIC analysis.
+Mark current step as STATIC analysis and parse parameters.
+
+STATIC parameters (data line):
+- initial_time_increment
+- total_time_period
+- minimum_time_increment (optional)
+- maximum_time_increment (optional)
 """
 function open_static!(model, state)
     state.step === nothing && error("*STATIC outside *STEP ?")
@@ -355,13 +365,50 @@ function open_static!(model, state)
 end
 
 """
+    close_static!(model, state)
+
+Close STATIC section and capture time increment parameters.
+"""
+function close_static!(model, state)
+    if length(state.data) > 0
+        # Parse STATIC parameters: initial_inc, total_time, [min_inc], [max_inc]
+        data_line = first(state.data)
+        # Split by comma and parse each float
+        params = [parse(Float64, strip(x)) for x in split(data_line, ',')]
+        state.step.parameters = params
+        @debug "STATIC parameters: $params"
+    end
+end
+
+"""
     open_frequency!(model, state)
 
-Mark current step as FREQUENCY analysis.
+Mark current step as FREQUENCY analysis and parse parameters.
+
+FREQUENCY parameters (data line):
+- number_of_eigenvalues
+- [min_eigenvalue]
+- [max_eigenvalue]
 """
 function open_frequency!(model, state)
     state.step === nothing && error("*FREQUENCY outside *STEP ?")
     state.step.kind = :FREQUENCY
+end
+
+"""
+    close_frequency!(model, state)
+
+Close FREQUENCY section and capture eigenvalue extraction parameters.
+"""
+function close_frequency!(model, state)
+    if length(state.data) > 0
+        # Parse FREQUENCY parameters: num_eigenvalues, [min], [max]
+        data_line = first(state.data)
+        # Split by comma and parse each float
+        params = [parse(Float64, strip(x)) for x in split(data_line, ',')]
+        state.step.parameters = params
+        @debug "FREQUENCY parameters: $params"
+    end
 end
 
 """
