@@ -54,6 +54,7 @@ Complete ABAQUS model including mesh, materials, properties, and analysis defini
 # Fields
 - `path::String` - Path to input file
 - `name::String` - Model name
+- `heading::Union{String,Nothing}` - Model heading/description
 - `mesh::Mesh` - Mesh geometry and topology
 - `materials::Dict{Symbol,AbstractMaterial}` - Material definitions
 - `properties::Vector{AbstractProperty}` - Section properties
@@ -63,6 +64,7 @@ Complete ABAQUS model including mesh, materials, properties, and analysis defini
 mutable struct Model
     path::String
     name::String
+    heading::Union{String,Nothing}
     mesh::Mesh
     materials::Dict{Symbol,AbstractMaterial}
     properties::Vector{AbstractProperty}
