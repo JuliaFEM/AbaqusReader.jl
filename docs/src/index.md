@@ -1,6 +1,8 @@
 # AbaqusReader.jl
 
-AbaqusReader.jl provides two distinct ways to read ABAQUS `.inp` files, depending on your needs:
+AbaqusReader.jl provides two distinct ways to read ABAQUS `.inp` files, depending on your needs.
+
+**Design Philosophy**: We provide **topology** (geometry and connectivity), not **physics** (formulations and behavior). See our [Philosophy](philosophy.md) for why we separate these concerns.
 
 ## Two Approaches for Two Different Needs
 

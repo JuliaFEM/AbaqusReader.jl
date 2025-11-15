@@ -135,8 +135,6 @@ Understanding the suffix letters helps in selecting the right element:
 - **Contact analysis?** Consider modified elements (M suffix, e.g., C3D10M)
 - **Avoid** first-order triangles and tets (C3D4, CPS3, CPE3, CAX3) except as filler elements
 
-For detailed element selection guidance, see the [Element Selection Guide](element_guide.md).
-
 ## Adding New Element Types
 
 Adding support for new ABAQUS element types is straightforward - element definitions are stored in a TOML database file rather than in code. See the [Contributing Guide](contributing.md) for detailed instructions.
