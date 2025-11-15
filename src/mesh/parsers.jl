@@ -2,6 +2,48 @@
 # License is MIT: see https://github.com/JuliaFEM/AbaqusReader.jl/blob/master/LICENSE
 
 """
+Keywords that are valid ABAQUS keywords but not relevant for mesh-only parsing.
+
+These are silently ignored by abaqus_read_mesh() to avoid noisy warnings.
+The model parser (abaqus_read_model) handles these keywords.
+"""
+const MODEL_ONLY_KEYWORDS = Set([
+    "HEADING",
+    "SOLID SECTION",
+    "SHELL SECTION",
+    "MASS",
+    "MATERIAL",
+    "ELASTIC",
+    "DENSITY",
+    "PLASTIC",
+    "EXPANSION",
+    "DAMPING",
+    "SPECIFIC HEAT",
+    "CONDUCTIVITY",
+    "INITIAL CONDITIONS",
+    "AMPLITUDE",
+    "SECTION CONTROLS",
+    "STEP",
+    "STATIC",
+    "FREQUENCY",
+    "END STEP",
+    "BOUNDARY",
+    "CLOAD",
+    "DLOAD",
+    "DSLOAD",
+    "OUTPUT",
+    "NODE OUTPUT",
+    "ELEMENT OUTPUT",
+    "ENERGY OUTPUT",
+    "CONTACT OUTPUT",
+    "NODE PRINT",
+    "EL PRINT",
+    "NODE FILE",
+    "EL FILE",
+    "CONTACT FILE"
+])
+
+"""
     parse_section(model, lines, ::Symbol, idx_start, idx_end, ::Type{Val{:NODE}})
 
 Parse NODE section from ABAQUS input file.
@@ -186,6 +228,9 @@ function parse_abaqus(fid::IOStream, verbose::Bool=true)
                 parse_section(model, lines, k_sym, idx_start, idx_end - 1, Val{:ELSET})
             elseif k_sym == :SURFACE
                 parse_section(model, lines, k_sym, idx_start, idx_end - 1, Val{:SURFACE})
+            elseif keyword in MODEL_ONLY_KEYWORDS
+                # Silently skip known model-only keywords
+                @debug "Skipping model-only keyword: $keyword"
             else
                 verbose && @warn "Unknown section: '$(keyword)'"
             end
