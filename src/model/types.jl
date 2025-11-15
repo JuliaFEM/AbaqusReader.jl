@@ -78,10 +78,44 @@ Solid section property linking an element set to a material.
 # Fields
 - `element_set::Symbol` - Name of element set
 - `material_name::Symbol` - Name of material
+- `controls::Union{Symbol,Nothing}` - Optional section controls name
 """
 mutable struct SolidSection <: AbstractProperty
     element_set::Symbol
     material_name::Symbol
+    controls::Union{Symbol,Nothing}
+end
+
+"""
+    ShellSection <: AbstractProperty
+
+Shell section property.
+
+# Fields
+- `element_set::Symbol` - Name of element set
+- `material_name::Symbol` - Name of material
+- `thickness::Float64` - Shell thickness
+- `num_integration_points::Int` - Number of through-thickness integration points
+"""
+mutable struct ShellSection <: AbstractProperty
+    element_set::Symbol
+    material_name::Symbol
+    thickness::Float64
+    num_integration_points::Int
+end
+
+"""
+    MassSection <: AbstractProperty
+
+Mass element section.
+
+# Fields
+- `element_set::Symbol` - Name of element set
+- `mass::Float64` - Mass value
+"""
+mutable struct MassSection <: AbstractProperty
+    element_set::Symbol
+    mass::Float64
 end
 
 """
@@ -113,17 +147,71 @@ mutable struct Elastic <: AbstractMaterialProperty
 end
 
 """
+    Density <: AbstractMaterialProperty
+
+Material density for mass and inertia calculations.
+
+# Fields
+- `density::Float64` - Mass density
+"""
+mutable struct Density <: AbstractMaterialProperty
+    density::Float64
+end
+
+"""
+    Plastic <: AbstractMaterialProperty
+
+Plastic material property with hardening curve.
+
+# Fields
+- `table::Vector{Tuple{Float64,Float64}}` - (yield_stress, plastic_strain) pairs
+"""
+mutable struct Plastic <: AbstractMaterialProperty
+    table::Vector{Tuple{Float64,Float64}}
+end
+
+"""
+    Expansion <: AbstractMaterialProperty
+
+Thermal expansion coefficient.
+
+# Fields
+- `alpha::Float64` - Coefficient of thermal expansion
+"""
+mutable struct Expansion <: AbstractMaterialProperty
+    alpha::Float64
+end
+
+"""
+    Damping <: AbstractMaterialProperty
+
+Material damping (Rayleigh damping).
+
+# Fields
+- `alpha::Float64` - Mass proportional damping
+- `beta::Float64` - Stiffness proportional damping
+"""
+mutable struct Damping <: AbstractMaterialProperty
+    alpha::Float64
+    beta::Float64
+end
+
+"""
     Step <: AbstractStep
 
 Analysis step definition.
 
 # Fields
-- `kind::Union{Symbol,Nothing}` - Step type (e.g., :STATIC)
+- `name::Union{String,Nothing}` - Step name
+- `kind::Union{Symbol,Nothing}` - Step type (e.g., :STATIC, :FREQUENCY)
+- `options::Dict` - Step options (NLGEOM, INC, PERTURBATION, etc.)
 - `boundary_conditions::Vector{AbstractBoundaryCondition}` - Step-specific BCs
 - `output_requests::Vector{AbstractOutputRequest}` - Output requests for this step
 """
 mutable struct Step <: AbstractStep
+    name::Union{String,Nothing}
     kind::Union{Symbol,Nothing}
+    options::Dict
     boundary_conditions::Vector{AbstractBoundaryCondition}
     output_requests::Vector{AbstractOutputRequest}
 end
