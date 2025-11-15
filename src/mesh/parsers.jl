@@ -159,18 +159,18 @@ function parse_section(model, lines, ::Symbol, idx_start, idx_end, ::Type{Val{:S
         @warn "SURFACE definition line could not be parsed: $definition"
         return
     end
-    
+
     set_type = get(has_set_def, "type", "UNKNOWN")
     set_name = has_set_def["name"]
 
     for line in lines[idx_start+1:idx_end]
         empty_or_comment_line(line) && continue
-        
+
         # Try to match element-based surface definition (element_id, face)
         m = match(r"(?P<element_id>\d+),.*(?P<element_side>S\d+).*", line)
-        
+
         if m !== nothing
-            # Element-based surface
+            # Element-based surface: element_id, face
             element_id = parse(Int, m[:element_id])
             element_side = Symbol(m[:element_side])
             push!(data, (element_id, element_side))
@@ -178,17 +178,26 @@ function parse_section(model, lines, ::Symbol, idx_start, idx_end, ::Type{Val{:S
             # Check for element-set-based surface definition (elset_name, face)
             m2 = match(r"([A-Za-z_][A-Za-z0-9_]*)\s*,\s*(S\d+)", line)
             if m2 !== nothing
-                # Element-set-based surfaces not fully supported yet
-                @warn "Element-set-based SURFACE definition not fully supported: $line"
-                @debug "  Use element IDs instead of element set names in SURFACE data"
-                # Skip this line for now
-                continue
+                # Element-set-based surface: expand element set to individual elements
+                elset_name = m2[1]
+                element_side = Symbol(m2[2])
+                
+                # Look up element set in model
+                if haskey(model["element_sets"], elset_name)
+                    element_ids = model["element_sets"][elset_name]
+                    for element_id in element_ids
+                        push!(data, (element_id, element_side))
+                    end
+                    @debug "Expanded element set $elset_name to $(length(element_ids)) elements for surface"
+                else
+                    @warn "Element set '$elset_name' referenced in SURFACE not found. Skipping."
+                end
             else
                 error("Cannot parse SURFACE data line: $line")
             end
         end
     end
-    
+
     if !isempty(data)
         model["surface_types"][set_name] = Symbol(set_type)
         model["surface_sets"][set_name] = data
