@@ -326,3 +326,14 @@ description = "2-node linear beam in space with cubic interpolation. Euler-Berno
 nodes = 1
 type = "Poi1"
 description = "3D distributed coupling element. Couples the motion of a reference node to a surface. Has only 1 reference node - the surface coupling is defined separately via *COUPLING keyword. Used for distributing loads/constraints."
+
+[MASS]
+nodes = 1
+type = "Poi1"
+description = "Point mass element. Adds mass at a single node. Used for modeling concentrated masses, inertia effects, or mass matrices in dynamic analysis."
+
+[ROTARYI]
+nodes = 1
+type = "Poi1"
+description = "Rotary inertia element. Adds rotational inertia at a node about specified axes. Used in dynamics for modeling concentrated rotational inertia effects."
+
