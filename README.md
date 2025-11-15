@@ -102,7 +102,7 @@ The following ABAQUS element types are currently supported. Note that element va
 
 | ABAQUS Element | Nodes | Generic Type | Notes |
 |----------------|:-----:|--------------|-------|
-| CPS3 | 3 | `:CPS3` | Plane stress triangle |
+| CPS3 | 3 | `:Tri3` | Plane stress triangle |
 | CPS4, CPS4R, CPS4I | 4 | `:Quad4` | Plane stress quad |
 | CPS6 | 6 | `:Tri6` | Plane stress 6-node triangle |
 | CPS8, CPS8R | 8 | `:Quad8` | Plane stress 8-node quad |

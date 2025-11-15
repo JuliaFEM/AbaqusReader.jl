@@ -181,7 +181,7 @@ function parse_section(model, lines, ::Symbol, idx_start, idx_end, ::Type{Val{:S
                 # Element-set-based surface: expand element set to individual elements
                 elset_name = m2[1]
                 element_side = Symbol(m2[2])
-                
+
                 # Look up element set in model
                 if haskey(model["element_sets"], elset_name)
                     element_ids = model["element_sets"][elset_name]

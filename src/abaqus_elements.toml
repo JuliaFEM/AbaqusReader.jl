@@ -178,7 +178,7 @@ description = "8-node quadrilateral shell, reduced integration. Quadratic interp
 
 [CPS3]
 nodes = 3
-type = "CPS3"
+type = "Tri3"
 description = "3-node linear plane stress triangle. Constant stress element. Avoid except as filler. Very fine mesh needed for acceptable results. Use CPS6 or quadrilaterals instead."
 
 [CPS4]
