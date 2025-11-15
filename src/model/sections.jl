@@ -178,7 +178,7 @@ Open SHELL SECTION and create shell property.
 function open_shell_section!(model, state)
     element_set = Symbol(get_option(state, "ELSET"))
     material_name = Symbol(get_option(state, "MATERIAL"))
-    state.property = :SHELL_PENDING  # Will be completed in close
+    # Don't set state.property here - will be set in close_shell_section!
 end
 
 """
