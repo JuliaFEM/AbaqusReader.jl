@@ -39,8 +39,18 @@ mesh = abaqus_parse_mesh(inp_content)
 """
 function abaqus_parse_mesh(content::AbstractString; kwargs...)
     verbose = get(kwargs, :verbose, true)
-    io = IOBuffer(content)
-    return parse_abaqus(io, verbose)
+
+    # Detect if this is a modern PART/ASSEMBLY format
+    lines = split(content, '\n')
+    if detect_assembly_format(collect(lines))
+        @debug "Detected PART/ASSEMBLY format, using assembly parser"
+        io = IOBuffer(content)
+        return parse_assembly_mesh(io; verbose=verbose)
+    else
+        @debug "Using flat parser"
+        io = IOBuffer(content)
+        return parse_abaqus(io, verbose)
+    end
 end
 
 """

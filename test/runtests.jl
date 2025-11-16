@@ -35,4 +35,7 @@ using Test
     @testset "test_parse_beams" begin
         include("test_parse_beams.jl")
     end
+    @testset "test_multiple_parts" begin
+        include("test_multiple_parts.jl")
+    end
 end

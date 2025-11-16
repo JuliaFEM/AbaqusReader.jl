@@ -10,6 +10,7 @@ import TOML
 include("mesh/element_database.jl")
 include("mesh/utilities.jl")
 include("mesh/parsers.jl")
+include("mesh/assembly_parser.jl")
 include("mesh/reader.jl")
 
 # Model parsing module
