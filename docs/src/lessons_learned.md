@@ -15,6 +15,7 @@ I've been working in computational engineering for years, using ABAQUS as the pr
 **ABAQUS's element type system is fundamentally broken from a software design perspective.**
 
 When I needed to read ABAQUS input files in Julia for the JuliaFEM project, I had a choice:
+
 1. Replicate ABAQUS's design (easy path - just map their types)
 2. Fix it properly (hard path - rethink the architecture)
 
@@ -28,7 +29,7 @@ I chose the hard path. This is why, and what I learned.
 
 ABAQUS has **100+ element types**. When I started cataloging them, I noticed a pattern:
 
-```
+```text
 CPS3  = 3-node triangle + Plane Stress
 CPE3  = 3-node triangle + Plane Strain  
 CAX3  = 3-node triangle + Axisymmetric
@@ -84,6 +85,7 @@ struct CAX3 end
 ```
 
 But this would:
+
 1. **Import the architectural problems** into Julia
 2. **Couple Julia code to ABAQUS's mistakes**
 3. **Prevent proper abstraction** over topology
@@ -111,6 +113,7 @@ K = stiffness(elem, physics)                  # Proper composition
 ```
 
 **Key principles:**
+
 - **Topology separated from physics** - orthogonal concerns stay separate
 - **Original names preserved** - full traceability to ABAQUS
 - **Linear complexity** - 15 topological types instead of 100+
@@ -126,6 +129,7 @@ K = stiffness(elem, physics)                  # Proper composition
 **Just because software is old, mature, and commercially successful doesn't mean its architecture is good.**
 
 ABAQUS dates from the 1970s, when:
+
 - FORTRAN was the only option
 - Procedural programming was standard
 - Type systems were primitive
@@ -142,6 +146,7 @@ I used to think "separation of concerns" was abstract theory. Then I hit exponen
 **Orthogonal concerns that aren't separated lead to exponential complexity.**
 
 Topology and physics are mathematically independent:
+
 - Any topology works with any physics
 - Changing topology shouldn't affect physics code
 - Changing physics shouldn't affect topology code
@@ -182,6 +187,7 @@ ABAQUS is stuck in 1970s FORTRAN procedural thinking, where the only abstraction
 ### Lesson 4: Compatibility Traps Are Real
 
 ABAQUS *knows* their element design is problematic. But they can't fix it because:
+
 - Millions of existing input files depend on exact element type names
 - Commercial users depend on backward compatibility
 - Refactoring would break *everything*
@@ -215,19 +221,25 @@ We support the *format* (interoperability). We preserve the *names* (traceabilit
 This isn't just about FEM or ABAQUS. The lessons apply everywhere:
 
 #### In Scientific Computing
+
 Many scientific codes date from the 1970s-1990s. They have deep domain expertise but dated software architecture. When building modern tools that interface with them:
+
 - **Extract the science** (algorithms, methods)
 - **Reject the architecture** (if it violates modern principles)
 - **Provide clean interfaces** for new code
 
 #### In Data Engineering
+
 Legacy data formats often have structural problems. When building parsers:
+
 - **Parse faithfully** (preserve all information)
 - **Transform to clean structures** (separation of concerns)
 - **Don't import the mess** into your codebase
 
 #### In API Design
+
 When building libraries, think about extensibility:
+
 - **Will adding dimension X require N new types?** → You're creating exponential complexity
 - **Are orthogonal concerns coupled?** → Separate them now, or pay later
 - **Can users extend without modifying your code?** → If not, refactor
@@ -270,6 +282,7 @@ This package is more than a parser. It's a statement about software engineering:
 **Sometimes the most important contribution isn't the code - it's the decision of what NOT to replicate.**
 
 By refusing to import ABAQUS's exponential complexity into Julia, AbaqusReader.jl provides:
+
 - A **clean foundation** for Julia FEM codes
 - An **example** of proper separation of concerns
 - A **teaching tool** for software engineering principles
@@ -280,18 +293,22 @@ By refusing to import ABAQUS's exponential complexity into Julia, AbaqusReader.j
 ## References and Further Reading
 
 ### On SOLID Principles
+
 - Martin, R.C. (2000). *Design Principles and Design Patterns*
 - Martin, R.C. (2017). *Clean Architecture*
 
 ### On Separation of Concerns
+
 - Dijkstra, E.W. (1982). "On the role of scientific thought"
 - Parnas, D.L. (1972). "On the criteria to be used in decomposing systems into modules"
 
 ### On Type System Design
+
 - Pierce, B.C. (2002). *Types and Programming Languages*
 - Bezanson, J., et al. (2017). "Julia: A fresh approach to numerical computing"
 
 ### On Technical Debt
+
 - Cunningham, W. (1992). "The WyCash portfolio management system"
 - Fowler, M. (2019). "Technical Debt" (martinfowler.com)
 
