@@ -138,3 +138,63 @@ Understanding the suffix letters helps in selecting the right element:
 ## Adding New Element Types
 
 Adding support for new ABAQUS element types is straightforward - element definitions are stored in a TOML database file rather than in code. See the [Contributing Guide](contributing.md) for detailed instructions.
+
+## Handling Unknown Element Types
+
+If you encounter an ABAQUS element type that is not yet in the database, AbaqusReader will provide a clear error message with instructions on how to proceed.
+
+### Dynamic Registration (Quick Fix)
+
+For immediate use, you can register an element type dynamically before reading your mesh:
+
+```julia
+using AbaqusReader
+
+# Register a C3D10I element (10-node incompatible mode tetrahedron)
+register_element!("C3D10I", 10, "Tet10")
+
+# Now you can read meshes containing C3D10I elements
+mesh = abaqus_read_mesh("model_with_c3d10i.inp")
+```
+
+The `register_element!` function takes three arguments:
+
+- `element_name`: The ABAQUS element name (case-insensitive, will be uppercased)
+- `num_nodes`: Number of nodes in the element
+- `element_type`: The generic topology type (e.g., "Tet4", "Hex8", "Tri3", "Quad4", "Seg2")
+
+This is useful when:
+
+- You need to quickly process a file with an uncommon element variant
+- You're testing or prototyping
+- You don't want to modify the package source
+
+### Permanent Addition (Recommended)
+
+For element types that should be permanently available:
+
+1. Edit `data/abaqus_elements.toml` in the AbaqusReader.jl repository
+2. Add a new section following the existing format:
+
+   ```toml
+   [ELEMENT_NAME]
+   nodes = <number_of_nodes>
+   type = "<topology_type>"
+   description = "Element description from ABAQUS documentation"
+   ```
+
+3. Run tests to verify: `julia --project=. test/runtests.jl`
+4. Submit a pull request to <https://github.com/ahojukka5/AbaqusReader.jl>
+
+See [Issue #67](https://github.com/ahojukka5/AbaqusReader.jl/issues/67) for the discussion that led to this feature.
+
+### Common Element Variations
+
+ABAQUS uses many variations of standard elements with the same node layout but different analysis characteristics:
+
+- **Integration variations**: C3D8 vs C3D8R (full vs reduced integration)
+- **Material model variations**: C3D8 vs C3D8H (standard vs hybrid for incompressible materials)
+- **Formulation variations**: C3D8 vs C3D8I (standard vs incompatible modes)
+- **Physics variations**: CPS4 vs CPE4 (plane stress vs plane strain)
+
+Since AbaqusReader focuses on **mesh topology** rather than analysis formulations, these variations with the same node count map to the same generic element type. The specific ABAQUS element name is preserved in the parsed data for reference.

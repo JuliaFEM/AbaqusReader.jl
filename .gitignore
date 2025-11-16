@@ -1,5 +1,6 @@
 docs/build/
 docs/site/
+build/
 *.swp
 *.cov
 Manifest.toml

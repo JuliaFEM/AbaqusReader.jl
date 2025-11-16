@@ -8,6 +8,9 @@ using Test
     @testset "test_element_database" begin
         include("test_element_database.jl")
     end
+    @testset "test_register_element" begin
+        include("test_register_element.jl")
+    end
     @testset "test_parse_mesh" begin
         include("test_parse_mesh.jl")
     end

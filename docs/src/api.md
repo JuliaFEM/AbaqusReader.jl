@@ -12,6 +12,7 @@ AbaqusReader.jl exports the following main functions for working with ABAQUS inp
 
 - File-based API: `abaqus_read_mesh`, `abaqus_read_model` (read from .inp files)
 - String-based API: `abaqus_parse_mesh`, `abaqus_parse_model` (parse from string buffers)
+- Element registration: `register_element!` (add element types dynamically)
 - Utilities: `create_surface_elements`, `abaqus_download`
 
 ## Index
@@ -26,6 +27,7 @@ abaqus_read_mesh
 abaqus_parse_mesh
 abaqus_read_model
 abaqus_parse_model
+register_element!
 create_surface_elements
 abaqus_download
 ```
