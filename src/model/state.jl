@@ -57,11 +57,25 @@ end
     get_options(state::AbaqusReaderState) -> Dict
 
 Get options dictionary from current section keyword.
+
+Handles both key-value pairs and boolean flags (bare strings).
+Boolean flags are stored with value `true`.
 """
 function get_options(state::AbaqusReaderState)
     section = state.section
-    section === nothing && return Dict()
-    return Dict(section.options)
+    section === nothing && return Dict{String,Any}()
+
+    options = Dict{String,Any}()
+    for item in section.options
+        if item isa Pair
+            # Key-value pair: OPTION=VALUE
+            options[String(first(item))] = String(last(item))
+        elseif item isa String
+            # Boolean flag: just OPTION (e.g., NLGEOM, PERTURBATION)
+            options[item] = true
+        end
+    end
+    return options
 end
 
 """
