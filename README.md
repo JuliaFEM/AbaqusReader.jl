@@ -7,6 +7,14 @@
 
 ![AbaqusReader.jl - Modern FEM Mesh Parser](docs/src/assets/readme-hero.webp)
 
+## 🚀 Try the Online Visualizer!
+
+**[Launch Online Visualizer →](https://ahojukka5.github.io/AbaqusReader.jl/visualizer/)**
+
+Drag and drop your ABAQUS `.inp` files to see them visualized in 3D - no installation required!
+
+---
+
 AbaqusReader.jl provides two distinct ways to read ABAQUS `.inp` files, depending on your needs.
 
 **Design Philosophy**: We provide **topology** (geometry and connectivity), not **physics** (formulations and behavior). Read [our design philosophy](docs/src/philosophy.md) for why we reject ABAQUS's element proliferation and use clean topological types instead.
@@ -193,6 +201,46 @@ description = "Your element description"
 1. No code changes needed - the element will be automatically available!
 
 See `src/ELEMENT_DATABASE.md` for detailed instructions on adding elements.
+
+## Test Data
+
+The `testdata/` directory contains ABAQUS `.inp` files for testing and validation:
+
+- **Generated test cases**: Simple meshes created programmatically for verification
+- **Large meshes**: Performance testing with 1000+ nodes
+- **Git LFS**: All `.inp` files are tracked with Git Large File Storage
+
+### Downloading Test Files
+
+To populate the test data directory:
+
+```bash
+cd testdata
+./download_test_files.sh
+```
+
+This script:
+
+- Generates several standard test cases (cubes, beams, large meshes)
+- Attempts to download from public repositories (FreeCAD, CalculiX)
+- Documents all sources in `testdata/SOURCES.md`
+- All files are automatically tracked by Git LFS
+
+### Using Test Files
+
+```julia
+using AbaqusReader
+
+# Test with a small file
+mesh = abaqus_read_mesh("testdata/cube_tet4_large.inp")
+
+# Test with a large file (performance)
+mesh = abaqus_read_mesh("testdata/large_mesh_test.inp")
+println("Parsed: ", length(mesh["nodes"]), " nodes, ", 
+        length(mesh["elements"]), " elements")
+```
+
+See `testdata/SOURCES.md` for detailed information about each file and how to add more.
 
 [ci-img]: https://github.com/ahojukka5/AbaqusReader.jl/workflows/CI/badge.svg
 [ci-url]: https://github.com/ahojukka5/AbaqusReader.jl/actions?query=workflow%3ACI+branch%3Amaster
