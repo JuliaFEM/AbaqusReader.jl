@@ -1,11 +1,11 @@
 # AbaqusReader.jl - parse ABAQUS input files to Julia
 
-![AbaqusReader.jl - Modern FEM Mesh Parser](docs/src/assets/readme-hero.webp)
-
 [![ci][ci-img]][ci-url]
 [![codecov][coverage-img]][coverage-url]
 [![docs-stable][docs-stable-img]][docs-stable-url]
 [![docs-dev][docs-dev-img]][docs-dev-url]
+
+![AbaqusReader.jl - Modern FEM Mesh Parser](docs/src/assets/readme-hero.webp)
 
 AbaqusReader.jl provides two distinct ways to read ABAQUS `.inp` files, depending on your needs.
 
