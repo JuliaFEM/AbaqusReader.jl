@@ -51,7 +51,7 @@ AbaqusReader.jl is designed around **two distinct use cases** that should never 
 3. That's it. No need for multiple functions.
 
 ### When Adding New Element Types
-1. **Don't edit code** - add to `src/abaqus_elements.toml` instead
+1. **Don't edit code** - add to `data/abaqus_elements.toml` instead
 2. Find ABAQUS element documentation for node count and topology
 3. Add entry to appropriate section in TOML file:
    ```toml
@@ -86,8 +86,9 @@ AbaqusReader.jl is designed around **two distinct use cases** that should never 
 
 ## File Responsibilities
 
-- **`abaqus_elements.toml`**: Element type database - easy to extend without code changes
-- **`parse_mesh.jl`**: Mesh-only parsing, loads element database from TOML, simple Dict returns
+- **`data/abaqus_elements.toml`**: Element type database - easy to extend without code changes
+- **`src/mesh/element_database.jl`**: Loads element database from TOML
+- **`src/mesh/parsers.jl`**: Mesh-only parsing, simple Dict returns
 - **`parse_model.jl`**: Complete model parsing, type definitions, structured Model returns
 - **`create_surface_elements.jl`**: Extract boundary faces from volume elements
 - **`abaqus_download.jl`**: Download example files from remote sources
