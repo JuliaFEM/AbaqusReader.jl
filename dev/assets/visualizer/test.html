@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Connection Test</title>
+</head>
+
+<body>
+    <h1>Backend Connection Test</h1>
+    <button onclick="testConnection()">Test Connection</button>
+    <div id="result"></div>
+
+    <script>
+        async function testConnection() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '<p>Testing...</p>';
+
+            try {
+                console.log('Fetching http://localhost:8081/health');
+                const response = await fetch('http://localhost:8081/health');
+                console.log('Response:', response);
+                const data = await response.json();
+                console.log('Data:', data);
+                resultDiv.innerHTML = `
+                    <h2>✅ Success!</h2>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+            } catch (err) {
+                console.error('Error:', err);
+                resultDiv.innerHTML = `
+                    <h2>❌ Failed</h2>
+                    <p>Error: ${err.message}</p>
+                    <p>Check browser console for details (F12)</p>
+                `;
+            }
+        }
+
+        // Test on load
+        window.onload = testConnection;
+    </script>
+</body>
+
+</html>
