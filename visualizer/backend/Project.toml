@@ -1,0 +1,8 @@
+name = "AbaqusReaderAPI"
+uuid = "a1b2c3d4-5e6f-7890-abcd-ef1234567890"
+version = "0.1.0"
+
+[deps]
+AbaqusReader = "bc6b9049-e460-56d6-94b4-a597b2c0390d"
+HTTP = "cd3eb016-35fb-5094-929b-558a96fad6f3"
+JSON3 = "0f8b85d8-7281-11e9-16c2-39a750bddbf1"
