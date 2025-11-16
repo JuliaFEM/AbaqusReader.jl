@@ -18,7 +18,7 @@ Look up the element in the ABAQUS Analysis User's Guide to determine:
 
 #### 2. Edit the Element Database
 
-Open `src/abaqus_elements.toml` and add a new section in the appropriate category:
+Open `data/abaqus_elements.toml` and add a new section in the appropriate category:
 
 ```toml
 [YOUR_ELEMENT_NAME]
