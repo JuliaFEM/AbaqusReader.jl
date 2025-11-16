@@ -9,9 +9,10 @@
 
 ## 🚀 Try the Online Visualizer!
 
-**[Launch Online Visualizer →](https://ahojukka5.github.io/AbaqusReader.jl/visualizer/)**
+**[Launch Online Visualizer →](https://ahojukka5.github.io/AbaqusReader.jl/stable/)**
 
 Drag and drop your ABAQUS `.inp` files to see them visualized in 3D - no installation required!
+Click "Open Visualizer" on the documentation page to access the interactive 3D viewer.
 
 ---
 
