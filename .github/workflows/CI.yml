@@ -72,6 +72,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     needs: test
+    if: ${{ !cancelled() }}
     permissions:
       contents: write
       statuses: write
