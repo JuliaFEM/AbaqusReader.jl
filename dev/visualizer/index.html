@@ -191,6 +191,59 @@
             transform: rotate(180deg);
         }
 
+        .why-dialog {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            cursor: pointer;
+        }
+
+        .why-content {
+            background: white;
+            padding: 50px;
+            border-radius: 20px;
+            text-align: center;
+            cursor: default;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .why-btn {
+            background: none;
+            border: 2px solid #9558B2;
+            color: #9558B2;
+            padding: 5px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+            margin-left: 10px;
+            transition: all 0.3s;
+        }
+
+        .why-btn:hover {
+            background: #9558B2;
+            color: white;
+        }
+
         .info-card-body {
             padding: 20px;
             max-height: 60vh;
@@ -296,6 +349,76 @@
             color: white;
         }
 
+        /* Initial loading dialog */
+        .initial-loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(10, 10, 10, 0.95);
+            border: 2px solid rgba(64, 99, 216, 0.5);
+            border-radius: 15px;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            color: white;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            min-width: 400px;
+        }
+
+        .loading-logo {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 20px;
+            animation: spin 3s linear infinite;
+        }
+
+        .loading-progress {
+            width: 100%;
+            max-width: 350px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+
+        .loading-progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #4063D8, #389826);
+            transition: width 0.3s ease;
+        }
+
+        .loading-text {
+            font-size: 1.1em;
+            margin: 5px 0;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .loading-subtext {
+            font-size: 0.85em;
+            opacity: 0.7;
+            text-align: center;
+            max-width: 350px;
+            line-height: 1.4;
+            padding: 0 10px;
+        }
+
+        .loading-warning {
+            margin-top: 15px;
+            padding: 12px 20px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            max-width: 350px;
+            text-align: center;
+            line-height: 1.6;
+        }
+
         .spinner {
             border: 4px solid rgba(255, 255, 255, 0.1);
             border-top: 4px solid #4063D8;
@@ -367,6 +490,36 @@
             pointer-events: none;
         }
 
+        /* Floating Why button */
+        .floating-why-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #9558B2 0%, #389826 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(149, 88, 178, 0.3);
+            z-index: 100;
+            opacity: 0;
+            transition: opacity 1s ease-in, transform 0.2s;
+            pointer-events: none;
+        }
+
+        .floating-why-btn.visible {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .floating-why-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(149, 88, 178, 0.4);
+        }
+
         .status-dot {
             width: 12px;
             height: 12px;
@@ -403,13 +556,29 @@
 
 <body>
     <div id="app" v-cloak>
+        <!-- Initial Loading Dialog -->
+        <div v-show="initialLoading" class="initial-loading">
+            <img src="logo.svg" alt="AbaqusReader.jl" class="loading-logo">
+            <div class="loading-text">Starting up...</div>
+            <div class="loading-progress">
+                <div class="loading-progress-bar" :style="{ width: loadingProgress + '%' }"></div>
+            </div>
+            <div class="loading-subtext">{{ loadingMessage }}</div>
+            <div v-show="showSlowWarning" class="loading-warning" style="display: none;">
+                ⏱️ The backend is waking up (free hosting on Railway.app)<br>
+                This is a hobby project. If you're in a rush, consider:<br>
+                • Contributing financially to upgrade hosting<br>
+                • Or just wait patiently (~30 seconds max) 😊
+            </div>
+        </div>
+
         <!-- Logo -->
         <div class="logo-container">
             <img src="logo.svg" alt="AbaqusReader.jl" class="logo-img">
         </div>
 
         <!-- Connection Status -->
-        <div v-cloak class="connection-status" :class="{ fading: statusFading }">
+        <div v-show="!statusHidden" v-cloak class="connection-status" :class="{ fading: statusFading }">
             <div class="status-dot"
                 :class="{ connected: connected && !checking, disconnected: !connected && !checking, checking: checking }">
             </div>
@@ -418,19 +587,23 @@
             <span v-else>Disconnected</span>
         </div>
 
+        <!-- Floating Why Button -->
+        <button v-cloak class="floating-why-btn" :class="{ visible: showWhyButton }" @click="showWhy = true">
+            Why? 😎
+        </button>
+
         <!-- Main viewer container -->
         <div class="viewer-container">
             <div id="canvas-container" ref="canvasContainer"></div>
 
             <!-- Drop zone overlay (shown when no mesh loaded) -->
             <div v-if="!meshData && !loading" class="drop-overlay" :class="{ dragging: dragging }"
-                @dragover.prevent="dragging = true" @dragleave="dragging = false" @drop.prevent="handleDrop"
-                @click="$refs.fileInput.click()">
+                @dragover.prevent="dragging = true" @dragleave="dragging = false" @drop.prevent="handleDrop">
                 <div class="drop-content">
                     <div class="drop-icon">📦</div>
                     <h2>Visualize ABAQUS Mesh</h2>
                     <p>Drop your .inp file here or click to browse</p>
-                    <button class="browse-btn">Browse Files</button>
+                    <button class="browse-btn" @click="$refs.fileInput.click()">Browse Files</button>
                     <input ref="fileInput" type="file" class="file-input" accept=".inp" @change="handleFileSelect">
                 </div>
             </div>
@@ -505,435 +678,25 @@
                     <button class="btn" @click="reset">Load Another File</button>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <script src="app.js?v=19"></script>
-</body>
-
-</html>
-[v-cloak] {
-display: none;
-}
-
-* {
-margin: 0;
-padding: 0;
-box-sizing: border-box;
-}
-
-body {
-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-background: linear-gradient(135deg, #4063D8 0%, #389826 100%); /* Julia blue to green */
-min-height: 100vh;
-padding: 20px;
-}
-
-#app {
-max-width: 1400px;
-margin: 0 auto;
-}
-
-.header {
-text-align: center;
-color: white;
-margin-bottom: 30px;
-position: relative;
-}
-
-.logo {
-position: absolute;
-left: 0;
-top: 0;
-width: 80px;
-height: 80px;
-}
-
-.header h1 {
-font-size: 2.5em;
-margin-bottom: 10px;
-}
-
-.header p {
-font-size: 1.2em;
-opacity: 0.9;
-}
-
-.main-container {
-display: grid;
-grid-template-columns: 350px 1fr;
-gap: 20px;
-height: calc(100vh - 200px);
-}
-
-.sidebar {
-background: white;
-border-radius: 15px;
-padding: 25px;
-box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-overflow-y: auto;
-}
-
-.drop-zone {
-border: 3px dashed #9558B2;
-border-radius: 10px;
-padding: 40px 20px;
-text-align: center;
-cursor: pointer;
-transition: all 0.3s;
-margin-bottom: 20px;
-}
-
-.drop-zone:hover {
-border-color: #CB3C33;
-background: #f8f9ff;
-}
-
-.drop-zone.active {
-border-color: #CB3C33;
-background: #f0f0ff;
-}
-
-.drop-zone-icon {
-font-size: 3em;
-margin-bottom: 10px;
-}
-
-.file-input {
-display: none;
-}
-
-.viewer {
-background: white;
-border-radius: 15px;
-box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-overflow: hidden;
-position: relative;
-}
-
-#canvas-container {
-width: 100%;
-height: 100%;
-}
-
-.info-section {
-margin-bottom: 25px;
-}
-
-.info-section h3 {
-color: #667eea;
-margin-bottom: 15px;
-font-size: 1.1em;
-}
-
-.stat-grid {
-display: grid;
-grid-template-columns: 1fr 1fr;
-gap: 10px;
-}
-
-.stat-item {
-background: #f8f9ff;
-padding: 12px;
-border-radius: 8px;
-}
-
-.stat-label {
-font-size: 0.85em;
-color: #666;
-margin-bottom: 5px;
-}
-
-.stat-value {
-font-size: 1.5em;
-font-weight: bold;
-color: #667eea;
-}
-
-.loading {
-text-align: center;
-padding: 20px;
-}
-
-.spinner {
-border: 3px solid #f3f3f3;
-border-top: 3px solid #667eea;
-border-radius: 50%;
-width: 40px;
-height: 40px;
-animation: spin 1s linear infinite;
-margin: 0 auto 15px;
-}
-
-@keyframes spin {
-0% {
-transform: rotate(0deg);
-}
-
-100% {
-transform: rotate(360deg);
-}
-}
-
-.error {
-background: #fee;
-border: 2px solid #fcc;
-border-radius: 8px;
-padding: 15px;
-margin-top: 15px;
-}
-
-.error h4 {
-color: #c00;
-margin-bottom: 10px;
-}
-
-.error-details {
-font-size: 0.9em;
-color: #666;
-max-height: 150px;
-overflow-y: auto;
-background: white;
-padding: 10px;
-border-radius: 5px;
-margin-top: 10px;
-font-family: monospace;
-white-space: pre-wrap;
-}
-
-.list-section {
-margin-top: 15px;
-}
-
-.list-section ul {
-list-style: none;
-padding: 0;
-}
-
-.list-section li {
-background: #f8f9ff;
-padding: 8px 12px;
-margin-bottom: 5px;
-border-radius: 5px;
-font-size: 0.9em;
-}
-
-.badge {
-display: inline-block;
-background: #9558B2;
-color: white;
-padding: 3px 8px;
-border-radius: 12px;
-font-size: 0.75em;
-margin-left: 8px;
-}
-
-.controls {
-margin-top: 20px;
-}
-
-.btn {
-background: #9558B2;
-color: white;
-border: none;
-padding: 10px 20px;
-border-radius: 8px;
-cursor: pointer;
-font-size: 1em;
-width: 100%;
-margin-bottom: 10px;
-transition: background 0.3s;
-}
-
-.btn:hover {
-background: #CB3C33;
-}
-
-.btn-secondary {
-background: #e0e0e0;
-color: #333;
-}
-
-.btn-secondary:hover {
-background: #d0d0d0;
-}
-
-.connection-status {
-position: absolute;
-bottom: 15px;
-right: 15px;
-background: rgba(255, 255, 255, 0.95);
-padding: 8px 15px;
-border-radius: 20px;
-display: flex;
-align-items: center;
-gap: 8px;
-box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-font-size: 0.9em;
-z-index: 10;
-}
-
-.status-dot {
-width: 10px;
-height: 10px;
-border-radius: 50%;
-animation: pulse 2s infinite;
-}
-
-.status-dot.connected {
-background: #389826;
-}
-
-.status-dot.disconnected {
-background: #CB3C33;
-animation: none;
-}
-
-.status-dot.checking {
-background: #9558B2;
-}
-
-@keyframes pulse {
-
-0%,
-100% {
-opacity: 1;
-}
-
-50% {
-opacity: 0.5;
-}
-}
-</style>
-</head>
-
-<body>
-    <div id="app" v-cloak>
-        <div class="header">
-            <img src="logo.svg" alt="AbaqusReader.jl Logo" class="logo">
-            <h1>🔧 AbaqusReader.jl</h1>
-            <p>Online ABAQUS Input File Visualizer</p>
-        </div>
-
-        <div class="main-container">
-            <!-- Sidebar -->
-            <div class="sidebar">
-                <div class="drop-zone" :class="{ active: dragging }" @click="$refs.fileInput.click()"
-                    @dragover.prevent="dragging = true" @dragleave="dragging = false" @drop.prevent="handleDrop">
-                    <div class="drop-zone-icon">📁</div>
-                    <div><strong>Drop .inp file here</strong></div>
-                    <div style="font-size: 0.9em; color: #666; margin-top: 10px;">or click to browse</div>
-                    <input ref="fileInput" type="file" class="file-input" accept=".inp" @change="handleFileSelect">
-                </div>
-
-                <div v-if="loading" class="loading">
-                    <div class="spinner"></div>
-                    <div>Parsing ABAQUS file...</div>
-                </div>
-
-                <div v-if="error" class="error">
-                    <h4>⚠️ Parsing Error</h4>
-                    <p>{{ error }}</p>
-                    <div class="error-details" v-if="errorDetails">{{ errorDetails }}</div>
-                    <div style="margin-top: 15px; font-size: 0.9em;">
-                        <p><strong>Need help?</strong></p>
-                        <p>Please report this issue on GitHub with your .inp file attached.</p>
-                        <button class="btn" style="margin-top: 10px;" @click="reportIssue">
-                            Report Issue on GitHub
-                        </button>
-                    </div>
-                </div>
-
-                <div v-if="meshData && !loading">
-                    <div class="info-section">
-                        <h3>📊 Mesh Statistics</h3>
-                        <div class="stat-grid">
-                            <div class="stat-item">
-                                <div class="stat-label">Nodes</div>
-                                <div class="stat-value">{{ meshData.stats.num_nodes }}</div>
-                            </div>
-                            <div class="stat-item">
-                                <div class="stat-label">Elements</div>
-                                <div class="stat-value">{{ meshData.stats.num_elements }}</div>
-                            </div>
-                            <div class="stat-item">
-                                <div class="stat-label">Element Sets</div>
-                                <div class="stat-value">{{ meshData.stats.num_element_sets }}</div>
-                            </div>
-                            <div class="stat-item">
-                                <div class="stat-label">Node Sets</div>
-                                <div class="stat-value">{{ meshData.stats.num_node_sets }}</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="info-section" v-if="meshData.has_parts">
-                        <h3>📦 Parts</h3>
-                        <ul>
-                            <li v-for="part in meshData.part_names" :key="part">
-                                {{ part }}
-                            </li>
-                        </ul>
-                    </div>
-
-                    <div class="info-section" v-if="modelData">
-                        <h3>🔬 Model Information</h3>
-                        <div class="stat-grid">
-                            <div class="stat-item">
-                                <div class="stat-label">Materials</div>
-                                <div class="stat-value">{{ modelData.stats.num_materials }}</div>
-                            </div>
-                            <div class="stat-item">
-                                <div class="stat-label">Properties</div>
-                                <div class="stat-value">{{ modelData.stats.num_properties }}</div>
-                            </div>
-                            <div class="stat-item">
-                                <div class="stat-label">Steps</div>
-                                <div class="stat-value">{{ modelData.stats.num_steps }}</div>
-                            </div>
-                        </div>
-
-                        <div class="list-section" v-if="modelData.materials.length > 0">
-                            <strong>Materials:</strong>
-                            <ul>
-                                <li v-for="mat in modelData.materials" :key="mat.name">
-                                    {{ mat.name }}
-                                    <span class="badge">{{ mat.type }}</span>
-                                </li>
-                            </ul>
-                        </div>
-
-                        <div class="list-section" v-if="modelData.steps.length > 0">
-                            <strong>Analysis Steps:</strong>
-                            <ul>
-                                <li v-for="step in modelData.steps" :key="step.name">
-                                    {{ step.name }}
-                                    <span class="badge">{{ step.type }}</span>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-
-                    <div class="controls">
-                        <button class="btn btn-secondary" @click="reset">
-                            Load Another File
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 3D Viewer -->
-            <div class="viewer">
-                <div id="canvas-container" ref="canvasContainer"></div>
-                <div v-if="!meshData && !loading && !error"
-                    style="display: flex; align-items: center; justify-content: center; height: 100%; color: #999; font-size: 1.2em;">
-                    Drop an ABAQUS .inp file to visualize
+            <!-- "Why?" dialog -->
+            <div v-show="showWhy" class="why-dialog" style="display: none;" @click="showWhy = false">
+                <div class="why-content" @click.stop>
+                    <div style="font-size: 120px; margin-bottom: 20px;">😎</div>
+                    <h1 style="font-size: 48px; color: #9558B2; margin-bottom: 20px; font-weight: bold;">
+                        BECAUSE WE CAN
+                    </h1>
+                    <p style="font-size: 18px; color: #666; margin-bottom: 30px;">
+                        Building awesome features for hobby projects.<br>
+                        No reason needed. Just pure engineering joy.
+                    </p>
+                    <button class="btn" @click="showWhy = false" style="background: #9558B2;">Got it! 💪</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <script src="app.js?v=15"></script>
+    <script src="app.js?v=26"></script>
 </body>
 
 </html>
