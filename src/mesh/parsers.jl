@@ -234,7 +234,7 @@ Main parser function for ABAQUS mesh input files.
 Reads all lines, finds keyword sections, and dispatches to appropriate section parsers.
 Returns a dictionary with mesh data structure.
 """
-function parse_abaqus(fid::IOStream, verbose::Bool=true)
+function parse_abaqus(fid::IO, verbose::Bool=true)
     model = Dict{String,Dict}()
     model["nodes"] = Dict{Int,Vector{Float64}}()
     model["node_sets"] = Dict{String,Vector{Int}}()
