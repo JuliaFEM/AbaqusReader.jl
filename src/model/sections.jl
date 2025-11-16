@@ -402,10 +402,18 @@ Close FREQUENCY section and capture eigenvalue extraction parameters.
 """
 function close_frequency!(model, state)
     if length(state.data) > 0
-        # Parse FREQUENCY parameters: num_eigenvalues, [min], [max]
+        # Parse FREQUENCY parameters: num_eigenvalues, [min], [max], [shift]
         data_line = first(state.data)
-        # Split by comma and parse each float
-        params = [parse(Float64, strip(x)) for x in split(data_line, ',')]
+        # Split by comma and parse, handling empty fields
+        params = Float64[]
+        for x in split(data_line, ',')
+            stripped = strip(x)
+            if !isempty(stripped)
+                push!(params, parse(Float64, stripped))
+            else
+                push!(params, NaN)  # Use NaN for missing optional parameters
+            end
+        end
         state.step.parameters = params
         @debug "FREQUENCY parameters: $params"
     end
