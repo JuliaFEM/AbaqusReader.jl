@@ -3,6 +3,15 @@
 
 using Documenter, AbaqusReader
 
+# Copy visualizer to assets so Documenter includes it
+visualizer_src = joinpath(@__DIR__, "src", "visualizer")
+visualizer_assets = joinpath(@__DIR__, "src", "assets", "visualizer")
+if isdir(visualizer_src) && !ispath(visualizer_assets)
+  mkpath(dirname(visualizer_assets))
+  cp(visualizer_src, visualizer_assets; force=true)
+  @info "Copied visualizer to assets for Documenter"
+end
+
 makedocs(modules=[AbaqusReader],
   format=Documenter.HTML(
     prettyurls=get(ENV, "CI", "false") == "true",
@@ -27,14 +36,6 @@ makedocs(modules=[AbaqusReader],
     "Contributing" => "contributing.md",
   ]
 )
-
-# Copy visualizer files to build directory after makedocs
-visualizer_src = joinpath(@__DIR__, "src", "visualizer")
-visualizer_dst = joinpath(@__DIR__, "build", "visualizer")
-if isdir(visualizer_src)
-  cp(visualizer_src, visualizer_dst; force=true)
-  @info "Copied visualizer to build directory"
-end
 
 deploydocs(
   repo="github.com/ahojukka5/AbaqusReader.jl.git",

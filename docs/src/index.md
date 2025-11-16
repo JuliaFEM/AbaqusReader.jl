@@ -20,7 +20,7 @@ AbaqusReader.jl provides two distinct ways to read ABAQUS `.inp` files, dependin
 </div>
 
 <div id="visualizer-container" style="display: none; margin: 2em 0;">
-  <iframe src="../visualizer/index.html" 
+  <iframe src="assets/visualizer/index.html" 
           style="width: 100%; height: 800px; border: 2px solid #9558B2; border-radius: 8px;" 
           title="AbaqusReader.jl Interactive Visualizer">
   </iframe>
