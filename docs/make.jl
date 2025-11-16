@@ -28,6 +28,14 @@ makedocs(modules=[AbaqusReader],
   ]
 )
 
+# Copy visualizer files to build directory after makedocs
+visualizer_src = joinpath(@__DIR__, "src", "visualizer")
+visualizer_dst = joinpath(@__DIR__, "build", "visualizer")
+if isdir(visualizer_src)
+  cp(visualizer_src, visualizer_dst; force=true)
+  @info "Copied visualizer to build directory"
+end
+
 deploydocs(
   repo="github.com/ahojukka5/AbaqusReader.jl.git",
   devbranch="master",
