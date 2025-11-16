@@ -5,3 +5,4 @@ docs/site/
 Manifest.toml
 test_output.log
 .vscode/mcp.json
+coverage.info
