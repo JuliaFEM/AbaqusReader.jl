@@ -2,6 +2,48 @@
 # License is MIT: see https://github.com/JuliaFEM/AbaqusReader.jl/blob/master/LICENSE
 
 """
+    abaqus_parse_mesh(content::AbstractString) -> Dict
+
+Parse ABAQUS mesh from a string buffer.
+
+This is the core parsing function that extracts mesh geometry and topology from
+ABAQUS input file content provided as a string. Use this when you have the content
+in memory or want to avoid file I/O in tests.
+
+# Arguments
+- `content::AbstractString`: ABAQUS input file content as a string
+
+# Returns
+Same dictionary structure as `abaqus_read_mesh`:
+- `"nodes"`: Node coordinates
+- `"elements"`: Element connectivity
+- `"element_types"`: Topological types
+- `"element_codes"`: Original ABAQUS element names
+- `"node_sets"`, `"element_sets"`, `"surface_sets"`: Named sets
+
+# Examples
+```julia
+inp_content = \"\"\"
+*NODE
+1, 0.0, 0.0, 0.0
+2, 1.0, 0.0, 0.0
+*ELEMENT, TYPE=C3D8
+1, 1, 2, 3, 4, 5, 6, 7, 8
+\"\"\"
+
+mesh = abaqus_parse_mesh(inp_content)
+```
+
+# See Also
+- [`abaqus_read_mesh`](@ref): Read mesh from file
+"""
+function abaqus_parse_mesh(content::AbstractString; kwargs...)
+    verbose = get(kwargs, :verbose, true)
+    io = IOBuffer(content)
+    return parse_abaqus(io, verbose)
+end
+
+"""
     abaqus_read_mesh(fn::String) -> Dict
 
 Read ABAQUS `.inp` file and extract mesh geometry and topology.
@@ -48,6 +90,7 @@ boundary_nodes = mesh["node_sets"]["BOUNDARY"]
 ```
 
 # See Also
+- [`abaqus_parse_mesh`](@ref): Parse mesh from string buffer
 - [`abaqus_read_model`](@ref): Read complete model including materials and boundary conditions
 - [`create_surface_elements`](@ref): Extract surface elements from surface definitions
 
@@ -59,8 +102,6 @@ boundary_nodes = mesh["node_sets"]["BOUNDARY"]
 - Original ABAQUS element names preserved in `element_codes` for traceability
 """
 function abaqus_read_mesh(fn::String; kwargs...)
-    verbose = get(kwargs, :verbose, true)
-    return open(fn) do fid
-        parse_abaqus(fid, verbose)
-    end
+    content = read(fn, String)
+    return abaqus_parse_mesh(content; kwargs...)
 end
