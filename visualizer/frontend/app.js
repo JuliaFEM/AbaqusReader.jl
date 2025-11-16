@@ -22,14 +22,22 @@ createApp({
             checking: false,
             infoCollapsed: false,
             statusFading: false,
-            fadeTimeout: null
+            fadeTimeout: null,
+            statusHidden: false,  // Track if status should stay hidden
+            showWhy: false,
+            showWhyButton: false,
+            whyButtonTimeout: null,
+            initialLoading: true,
+            loadingProgress: 0,
+            loadingMessage: 'Initializing...',
+            showSlowWarning: false,
+            slowWarningTimeout: null
         };
     },
 
     mounted() {
         this.initThreeJS();
-        // Check connection after a short delay to ensure everything is loaded
-        setTimeout(() => this.checkConnection(), 500);
+        this.startInitialLoading();
         window.addEventListener('resize', this.onWindowResize);
         // Check connection every 5 seconds
         this.connectionInterval = setInterval(() => this.checkConnection(), 5000);
@@ -43,12 +51,100 @@ createApp({
         if (this.fadeTimeout) {
             clearTimeout(this.fadeTimeout);
         }
+        if (this.whyButtonTimeout) {
+            clearTimeout(this.whyButtonTimeout);
+        }
+        if (this.slowWarningTimeout) {
+            clearTimeout(this.slowWarningTimeout);
+        }
         if (this.renderer) {
             this.renderer.dispose();
         }
     },
 
     methods: {
+        async startInitialLoading() {
+            const startTime = Date.now(); // Track when loading started
+
+            // Set timeout to show warning after 5 seconds
+            this.slowWarningTimeout = setTimeout(() => {
+                this.showSlowWarning = true;
+            }, 5000);
+
+            // Simulate progress from 0 to 100%
+            const progressInterval = setInterval(() => {
+                if (this.loadingProgress < 95) {
+                    this.loadingProgress += Math.random() * 5;
+                    if (this.loadingProgress > 95) {
+                        this.loadingProgress = 95;
+                    }
+                }
+
+                // Update loading message based on progress
+                if (this.loadingProgress < 30) {
+                    this.loadingMessage = 'Initializing...';
+                } else if (this.loadingProgress < 60) {
+                    this.loadingMessage = 'Connecting to backend...';
+                } else if (this.loadingProgress < 95) {
+                    this.loadingMessage = 'Waking up Railway backend...';
+                }
+            }, 100);
+
+            // Try to connect to backend with retries
+            const maxRetries = 30; // Up to ~30 seconds
+            let retries = 0;
+            let connected = false;
+
+            while (retries < maxRetries && !connected) {
+                try {
+                    const response = await fetch(`${this.apiUrl}/health`, {
+                        method: 'GET',
+                        mode: 'cors'
+                    });
+
+                    if (response.ok) {
+                        connected = true;
+                        break;
+                    }
+                } catch (error) {
+                    // Backend not ready yet, retry
+                }
+
+                retries++;
+                await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+
+            // Ensure minimum loading time of 10 seconds so users can see the full experience
+            const elapsedTime = Date.now() - startTime;
+            const minimumLoadingTime = 10000; // 10 seconds
+            if (elapsedTime < minimumLoadingTime) {
+                await new Promise(resolve => setTimeout(resolve, minimumLoadingTime - elapsedTime));
+            }
+
+            // Cleanup and finish loading
+            clearInterval(progressInterval);
+            clearTimeout(this.slowWarningTimeout);
+            this.slowWarningTimeout = null;
+
+            if (connected) {
+                this.loadingProgress = 100;
+                this.loadingMessage = 'Ready!';
+
+                // Brief pause to show "Ready!" message
+                await new Promise(resolve => setTimeout(resolve, 500));
+
+                this.initialLoading = false;
+
+                // Now check connection status for the header indicator
+                await this.checkConnection();
+            } else {
+                // Failed to connect - show error in main UI
+                this.initialLoading = false;
+                this.connected = false;
+                this.connecting = false;
+            }
+        },
+
         initThreeJS() {
             const container = this.$refs.canvasContainer;
 
@@ -110,12 +206,6 @@ createApp({
 
         async checkConnection() {
             this.checking = true;
-            // Clear any existing fade timeout and show status
-            if (this.fadeTimeout) {
-                clearTimeout(this.fadeTimeout);
-                this.fadeTimeout = null;
-            }
-            this.statusFading = false;
 
             console.log('Checking connection to:', this.apiUrl + '/health');
             try {
@@ -130,18 +220,53 @@ createApp({
                 clearTimeout(timeoutId);
                 const data = await response.json();
                 console.log('Health check response:', data);
+                const wasConnected = this.connected;
                 this.connected = data.status === 'healthy';
                 console.log('Connected:', this.connected);
 
-                // If connected, fade out after 10 seconds
-                if (this.connected) {
+                // Only show status if connection state changed or it was previously hidden due to error
+                if (this.connected && !wasConnected) {
+                    // Connection restored - show briefly then fade
+                    this.statusFading = false;
+                    this.statusHidden = false;
+                    if (this.fadeTimeout) {
+                        clearTimeout(this.fadeTimeout);
+                    }
                     this.fadeTimeout = setTimeout(() => {
                         this.statusFading = true;
-                    }, 10000);
+                        setTimeout(() => {
+                            this.statusHidden = true;
+                        }, 1000); // Hide after fade completes
+                    }, 3000);
+                } else if (this.connected && wasConnected && !this.statusHidden) {
+                    // Still connected, first time - fade it
+                    if (!this.fadeTimeout) {
+                        this.fadeTimeout = setTimeout(() => {
+                            this.statusFading = true;
+                            setTimeout(() => {
+                                this.statusHidden = true;
+                            }, 1000);
+                        }, 3000);
+                    }
+                } else if (!this.connected) {
+                    // Connection lost - show immediately
+                    this.statusFading = false;
+                    this.statusHidden = false;
+                    if (this.fadeTimeout) {
+                        clearTimeout(this.fadeTimeout);
+                        this.fadeTimeout = null;
+                    }
                 }
             } catch (err) {
                 console.log('Connection check failed:', err.message);
                 this.connected = false;
+                // Show status on error
+                this.statusFading = false;
+                this.statusHidden = false;
+                if (this.fadeTimeout) {
+                    clearTimeout(this.fadeTimeout);
+                    this.fadeTimeout = null;
+                }
             } finally {
                 this.checking = false;
             }
@@ -352,6 +477,14 @@ createApp({
             console.log('Forcing render...');
             this.renderer.render(this.scene, this.camera);
             console.log('Render complete!');
+
+            // Show "Why?" button after 5 seconds
+            if (this.whyButtonTimeout) {
+                clearTimeout(this.whyButtonTimeout);
+            }
+            this.whyButtonTimeout = setTimeout(() => {
+                this.showWhyButton = true;
+            }, 5000);
         },
 
         reset() {
@@ -360,6 +493,12 @@ createApp({
             this.fileName = null;
             this.error = null;
             this.errorDetails = null;
+            this.showWhyButton = false;
+
+            if (this.whyButtonTimeout) {
+                clearTimeout(this.whyButtonTimeout);
+                this.whyButtonTimeout = null;
+            }
 
             // Remove all mesh objects
             if (this.mesh) {
@@ -398,6 +537,10 @@ createApp({
                 `https://github.com/ahojukka5/AbaqusReader.jl/issues/new?title=${title}&body=${body}`,
                 '_blank'
             );
+        },
+
+        showWhyDialog() {
+            this.showWhy = true;
         }
     }
 }).mount('#app');
