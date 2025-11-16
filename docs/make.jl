@@ -27,3 +27,9 @@ makedocs(modules=[AbaqusReader],
     "Contributing" => "contributing.md",
   ]
 )
+
+deploydocs(
+  repo="github.com/ahojukka5/AbaqusReader.jl.git",
+  devbranch="master",
+  push_preview=true,
+)
