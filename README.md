@@ -176,11 +176,11 @@ The following ABAQUS element types are currently supported. Note that element va
 - `M` = Modified formulation
 - `E` = Enhanced
 
-### Adding New Elements
+### Adding New Element Types
 
-Adding new element types is easy! Element definitions are stored in a TOML file (`src/abaqus_elements.toml`) rather than in code. To add a new element:
+Adding new element types is easy! Element definitions are stored in a TOML file (`data/abaqus_elements.toml`) rather than in code. To add a new element:
 
-1. Open `src/abaqus_elements.toml`
+1. Open `data/abaqus_elements.toml`
 1. Add an entry following the existing format:
 
 ```toml
