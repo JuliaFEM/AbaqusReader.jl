@@ -160,7 +160,7 @@ function open_solid_section!(model, state)
     element_set = Symbol(get_option(state, "ELSET"))
     material_name = Symbol(get_option(state, "MATERIAL"))
     controls = haskey(get_options(state), "CONTROLS") ? Symbol(get_option(state, "CONTROLS")) : nothing
-    property = SolidSection(element_set, material_name, controls)
+    property = SolidSection(element_set, material_name, controls, nothing)
     state.property = property
     push!(model.properties, property)
 end
@@ -168,9 +168,26 @@ end
 """
     close_solid_section!(model, state)
 
-Close SOLID SECTION (no data to process).
+Close SOLID SECTION and parse optional area parameter for truss elements.
+
+For truss elements (T2D2, T3D2), the line after *SOLID SECTION contains the
+cross-sectional area. This function reads that data if present.
 """
 function close_solid_section!(model, state)
+    if state.property !== nothing && state.property isa SolidSection
+        # Check if there's data to parse (area for truss elements)
+        if !isempty(state.data)
+            # Parse area from first data line
+            data_line = strip(state.data[1])
+            if !isempty(data_line)
+                # Remove trailing comma if present
+                data_line = replace(data_line, r",$" => "")
+                area = parse(Float64, data_line)
+                state.property.area = area
+                @debug "Parsed SOLID SECTION area: $area"
+            end
+        end
+    end
     state.property = nothing
 end
 

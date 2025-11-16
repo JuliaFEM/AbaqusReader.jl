@@ -81,11 +81,13 @@ Solid section property linking an element set to a material.
 - `element_set::Symbol` - Name of element set
 - `material_name::Symbol` - Name of material
 - `controls::Union{Symbol,Nothing}` - Optional section controls name
+- `area::Union{Float64,Nothing}` - Cross-sectional area (required for truss elements like T2D2, T3D2)
 """
 mutable struct SolidSection <: AbstractProperty
     element_set::Symbol
     material_name::Symbol
     controls::Union{Symbol,Nothing}
+    area::Union{Float64,Nothing}
 end
 
 """

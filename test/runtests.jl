@@ -11,6 +11,9 @@ using Test
     @testset "test_register_element" begin
         include("test_register_element.jl")
     end
+    @testset "test_solid_section_area" begin
+        include("test_solid_section_area.jl")
+    end
     @testset "test_parse_mesh" begin
         include("test_parse_mesh.jl")
     end
