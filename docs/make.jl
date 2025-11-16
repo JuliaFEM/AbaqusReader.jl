@@ -19,6 +19,7 @@ makedocs(modules=[AbaqusReader],
   pages=[
     "Home" => "index.md",
     "Philosophy" => "philosophy.md",
+    "Lessons Learned" => "lessons_learned.md",
     "Examples" => "examples.md",
     "Supported Elements" => "elements.md",
     "Element Database" => "element_database.md",
