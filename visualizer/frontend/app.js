@@ -17,7 +17,7 @@ createApp({
             mesh: null,
             solidMesh: null,
             pointsMesh: null,
-            apiUrl: 'http://localhost:8081',
+            apiUrl: 'https://abaqusreaderjl-production.up.railway.app',
             connected: false,
             checking: false,
             infoCollapsed: false,
