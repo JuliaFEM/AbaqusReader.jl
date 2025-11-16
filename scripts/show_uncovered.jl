@@ -57,14 +57,14 @@ function main()
     total_lines = count(x -> x !== nothing, file_cov_data)
     coverage_pct = round(100 * covered_lines / total_lines, digits=1)
 
-    println("=" ^ 80)
+    println("="^80)
     println("Uncovered Lines in $filename")
-    println("=" ^ 80)
+    println("="^80)
     println()
     println("Coverage: $(coverage_pct)% ($covered_lines/$total_lines lines)")
     println("Uncovered: $(length(uncovered_lines)) line(s)")
     println()
-    println("=" ^ 80)
+    println("="^80)
     println()
 
     # Show uncovered lines with context
@@ -72,22 +72,22 @@ function main()
         # Show 2 lines of context before and after
         start_line = max(1, line_num - 2)
         end_line = min(length(source_lines), line_num + 2)
-        
+
         println("Lines $start_line-$end_line (uncovered: $line_num):")
-        println("─" ^ 80)
-        
+        println("─"^80)
+
         for i in start_line:end_line
             marker = i == line_num ? "❌" : "  "
             line_marker = lpad(i, 4)
             println("$marker $line_marker │ $(source_lines[i])")
         end
-        
+
         println()
     end
 
-    println("=" ^ 80)
+    println("="^80)
     println("💡 Add tests to cover these $(length(uncovered_lines)) line(s)")
-    println("=" ^ 80)
+    println("="^80)
 end
 
 main()
