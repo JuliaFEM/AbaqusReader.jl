@@ -24,7 +24,9 @@ include("create_surface_elements.jl")
 include("abaqus_download.jl")
 
 # Export public API
-export abaqus_read_mesh, abaqus_read_model, create_surface_elements
+export abaqus_read_mesh, abaqus_parse_mesh
+export abaqus_read_model, abaqus_parse_model
+export create_surface_elements
 export abaqus_download
 
 end
