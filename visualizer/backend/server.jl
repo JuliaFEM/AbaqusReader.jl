@@ -180,6 +180,128 @@ function health_handler(req::HTTP.Request)
 end
 
 """
+List available test files from testdata directory
+"""
+function list_testdata_handler(req::HTTP.Request)
+    try
+        # Get testdata directory path (relative to project root)
+        testdata_dir = joinpath(dirname(dirname(dirname(@__FILE__))), "testdata")
+
+        files = []
+
+        if isdir(testdata_dir)
+            for file in readdir(testdata_dir)
+                if endswith(file, ".inp")
+                    filepath = joinpath(testdata_dir, file)
+                    filesize = stat(filepath).size
+
+                    # Format size nicely
+                    size_str = if filesize < 1024
+                        "$(filesize) B"
+                    elseif filesize < 1024 * 1024
+                        "$(round(filesize / 1024, digits=1)) KB"
+                    else
+                        "$(round(filesize / (1024 * 1024), digits=1)) MB"
+                    end
+
+                    push!(files, Dict(
+                        "name" => file,
+                        "size" => filesize,
+                        "size_formatted" => size_str
+                    ))
+                end
+            end
+        end
+
+        # Sort by size
+        sort!(files, by=f -> f["size"])
+
+        result = Dict(
+            "success" => true,
+            "files" => files,
+            "count" => length(files)
+        )
+
+        return HTTP.Response(200, CORS_HEADERS, JSON3.write(result))
+
+    catch e
+        @error "Failed to list testdata files" exception = e
+        result = Dict(
+            "success" => false,
+            "error" => string(e),
+            "files" => []
+        )
+        return HTTP.Response(500, CORS_HEADERS, JSON3.write(result))
+    end
+end
+
+"""
+Load a test file from testdata directory
+"""
+function load_testdata_handler(req::HTTP.Request)
+    try
+        # Parse query parameters
+        uri = HTTP.URI(req.target)
+        params = HTTP.queryparams(uri)
+
+        if !haskey(params, "file")
+            return HTTP.Response(400, CORS_HEADERS,
+                JSON3.write(Dict("error" => "Missing 'file' parameter")))
+        end
+
+        filename = params["file"]
+
+        # Security: only allow .inp files and no path traversal
+        if !endswith(filename, ".inp") || contains(filename, "..")
+            return HTTP.Response(400, CORS_HEADERS,
+                JSON3.write(Dict("error" => "Invalid filename")))
+        end
+
+        # Get testdata directory path
+        testdata_dir = joinpath(dirname(dirname(dirname(@__FILE__))), "testdata")
+        filepath = joinpath(testdata_dir, filename)
+
+        if !isfile(filepath)
+            return HTTP.Response(404, CORS_HEADERS,
+                JSON3.write(Dict("error" => "File not found")))
+        end
+
+        # Read and parse the file
+        content = read(filepath, String)
+
+        # Parse as mesh
+        mesh = abaqus_parse_mesh(content, verbose=false)
+        result = mesh_to_json(mesh)
+        result["success"] = true
+        result["parse_type"] = "mesh"
+        result["filename"] = filename
+
+        # Try to parse as complete model for additional info
+        try
+            model = abaqus_parse_model(content)
+            result["model"] = model_to_json(model)
+            result["parse_type"] = "full"
+        catch e
+            @info "Full model parsing not available for $filename (mesh-only mode)"
+        end
+
+        return HTTP.Response(200, CORS_HEADERS, JSON3.write(result))
+
+    catch e
+        error_msg = sprint(showerror, e, catch_backtrace())
+        @error "Failed to load testdata file" exception = e
+
+        result = Dict(
+            "success" => false,
+            "error" => string(e),
+            "error_details" => error_msg
+        )
+
+        return HTTP.Response(500, CORS_HEADERS, JSON3.write(result))
+    end
+end
+
+"""
 Handle CORS preflight requests
 """
 function cors_handler(req::HTTP.Request)
@@ -198,6 +320,10 @@ function router(req::HTTP.Request)
     # Route requests
     if req.method == "GET" && req.target == "/health"
         return health_handler(req)
+    elseif req.method == "GET" && startswith(req.target, "/testdata/list")
+        return list_testdata_handler(req)
+    elseif req.method == "GET" && startswith(req.target, "/testdata/load")
+        return load_testdata_handler(req)
     elseif req.method == "POST" && req.target == "/parse"
         return parse_handler(req)
     else
