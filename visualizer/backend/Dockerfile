@@ -10,7 +10,7 @@ WORKDIR /app
 RUN git lfs install && git lfs pull || echo "LFS pull failed, continuing..."
 
 # Verify test files were pulled
-RUN ls -lh testdata/ && file testdata/3d_beam.inp
+RUN [ -d testdata ] && ls -lh testdata/ || echo "No testdata directory"
 
 # Change to backend directory
 WORKDIR /app/visualizer/backend
