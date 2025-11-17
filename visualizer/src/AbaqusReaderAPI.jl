@@ -136,8 +136,8 @@ function parse_handler(req::HTTP.Request)
                 JSON3.write(Dict("error" => "No file content provided")))
         end
 
-    # Parse as mesh first (use imported function to avoid module-binding issues)
-    mesh = abaqus_parse_mesh(content, verbose=false)
+        # Parse as mesh first (use imported function to avoid module-binding issues)
+        mesh = abaqus_parse_mesh(content, verbose=false)
         result = mesh_to_json(mesh)
         result["success"] = true
         result["parse_type"] = "mesh"
