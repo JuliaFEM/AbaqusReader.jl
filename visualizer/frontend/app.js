@@ -31,7 +31,9 @@ createApp({
             loadingProgress: 0,
             loadingMessage: 'Initializing...',
             showSlowWarning: false,
-            slowWarningTimeout: null
+            slowWarningTimeout: null,
+            testFiles: [],  // Available test files
+            selectedTestFile: ''  // Currently selected test file
         };
     },
 
@@ -137,6 +139,9 @@ createApp({
 
                 // Now check connection status for the header indicator
                 await this.checkConnection();
+
+                // Fetch available test files
+                await this.fetchTestFiles();
             } else {
                 // Failed to connect - show error in main UI
                 this.initialLoading = false;
@@ -270,6 +275,54 @@ createApp({
             } finally {
                 this.checking = false;
             }
+        },
+
+        async fetchTestFiles() {
+            try {
+                const response = await fetch(`${this.apiUrl}/testdata/list`);
+                const data = await response.json();
+
+                if (data.success && data.files) {
+                    this.testFiles = data.files;
+                    console.log('Loaded test files:', data.files.length);
+                }
+            } catch (err) {
+                console.log('Could not load test files:', err.message);
+                // Not critical, just hide the dropdown
+                this.testFiles = [];
+            }
+        },
+
+        async loadTestFile() {
+            if (!this.selectedTestFile) return;
+
+            this.loading = true;
+            this.error = null;
+            this.fileName = this.selectedTestFile;
+
+            try {
+                const response = await fetch(`${this.apiUrl}/testdata/load?file=${encodeURIComponent(this.selectedTestFile)}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    this.meshData = data;
+                    this.modelData = data.model || null;
+                    this.visualizeMesh(data);
+                } else {
+                    this.error = data.error || 'Failed to load test file';
+                    this.errorDetails = data.error_details || '';
+                }
+            } catch (err) {
+                this.error = 'Failed to load test file: ' + err.message;
+                console.error('Error loading test file:', err);
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        formatTestFileName(name) {
+            // Remove .inp extension and format nicely
+            return name.replace('.inp', '').replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
         },
 
         handleDrop(e) {
