@@ -186,7 +186,7 @@ List available test files from testdata directory
 """
 function list_testdata_handler(req::HTTP.Request)
     try
-        # Get testdata directory path (relative to project root)
+        # Use /testdata directory as the demo file source
         testdata_dir = joinpath(dirname(dirname(dirname(@__FILE__))), "testdata")
 
         files = []
@@ -259,7 +259,7 @@ function load_testdata_handler(req::HTTP.Request)
                 JSON3.write(Dict("error" => "Invalid filename")))
         end
 
-        # Get testdata directory path
+        # Use /testdata directory as the demo file source
         testdata_dir = joinpath(dirname(dirname(dirname(@__FILE__))), "testdata")
         filepath = joinpath(testdata_dir, filename)
 

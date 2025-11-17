@@ -17,9 +17,12 @@ createApp({
             mesh: null,
             solidMesh: null,
             pointsMesh: null,
+            // Try to detect backend automatically on common local ports.
             apiUrl: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
                 ? 'http://localhost:8080'
                 : 'https://abaqusreaderjl-production.up.railway.app',
+            // Candidate ports to try when running locally (useful when backend listens on 8080 or 8081)
+            apiPorts: [8080, 8081],
             connected: false,
             checking: false,
             infoCollapsed: false,
@@ -93,6 +96,13 @@ createApp({
                     this.loadingMessage = 'Waking up Railway backend...';
                 }
             }, 100);
+
+            // Try to detect the backend URL (useful when frontend is served on a different port)
+            try {
+                await this.detectApiUrl();
+            } catch (err) {
+                // detection failed; fall back to existing apiUrl and let retry logic handle it
+            }
 
             // Try to connect to backend with retries
             const maxRetries = 30; // Up to ~30 seconds
@@ -293,6 +303,32 @@ createApp({
                 // Not critical, just hide the dropdown
                 this.testFiles = [];
             }
+        },
+
+        // Try common local ports and set `this.apiUrl` to the first that answers /health
+        async detectApiUrl() {
+            if (!(window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+                return; // only try detection for local development
+            }
+
+            for (const port of this.apiPorts) {
+                const candidate = `http://localhost:${port}`;
+                try {
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 1500);
+                    const resp = await fetch(`${candidate}/health`, { method: 'GET', signal: controller.signal });
+                    clearTimeout(timeoutId);
+                    if (resp.ok) {
+                        this.apiUrl = candidate;
+                        console.log('Detected backend API at', this.apiUrl);
+                        return;
+                    }
+                } catch (e) {
+                    // try next
+                }
+            }
+            // If none detected, keep the existing apiUrl (defaults to 8080 or production)
+            console.log('No local backend detected on candidate ports, using', this.apiUrl);
         },
 
         async loadTestFile() {
