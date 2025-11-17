@@ -16,9 +16,8 @@ The Julia backend API is **working perfectly**! Container tested with Podman.
 ### Quick Start
 
 ```bash
-# Build the backend
-cd /home/juajukka/dev/AbaqusReader.jl
-podman build -t abaqusreader-api -f visualizer/backend/Dockerfile .
+# Build the backend (canonical)
+podman build -t abaqusreader-api -f visualizer/Dockerfile .
 
 # Run the backend
 podman run -d --name abaqus-api -p 8081:8080 abaqusreader-api
