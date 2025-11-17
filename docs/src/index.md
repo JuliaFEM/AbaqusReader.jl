@@ -2,9 +2,14 @@
 
 ![AbaqusReader.jl - Modern FEM Mesh Parser](assets/readme-hero.webp)
 
-AbaqusReader.jl provides two distinct ways to read ABAQUS `.inp` files, depending on your needs.
+**Parse ABAQUS input files in Julia with a clean, modern API.**
 
-**Design Philosophy**: We provide **topology** (geometry and connectivity), not **physics** (formulations and behavior). See our [Philosophy](philosophy.md) for why we separate these concerns.
+AbaqusReader.jl provides two distinct approaches for working with ABAQUS `.inp` files:
+
+- **Mesh-only parsing** for quick geometry extraction
+- **Complete model parsing** for full simulation definitions
+
+**Design Philosophy**: We provide **topology** (geometry and connectivity), not **physics** (formulations and behavior). Read our [Philosophy](philosophy.md) to understand why we reject ABAQUS's element proliferation and embrace clean, topological types instead.
 
 ---
 
@@ -12,10 +17,10 @@ AbaqusReader.jl provides two distinct ways to read ABAQUS `.inp` files, dependin
 <div style="text-align: center; margin: 2em 0; padding: 2em; background: linear-gradient(135deg, #9558B2 0%, #389826 100%); border-radius: 8px;">
   <button onclick="document.getElementById('visualizer-container').style.display='block'; this.parentElement.style.display='none';" 
           style="background: white; color: #9558B2; border: none; padding: 15px 40px; font-size: 18px; font-weight: bold; border-radius: 5px; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-    🚀 Launch Interactive Visualizer
+    🚀 Open Interactive Visualizer
   </button>
   <p style="color: white; margin-top: 10px; font-size: 14px;">
-    Drag & drop your ABAQUS .inp files • See 3D mesh in real-time
+    Drag & drop your ABAQUS .inp files • Visualize meshes in 3D • No installation required
   </p>
 </div>
 
@@ -39,30 +44,36 @@ AbaqusReader.jl provides two distinct ways to read ABAQUS `.inp` files, dependin
 
 ### 1. Mesh-Only Parsing - `abaqus_read_mesh()`
 
-When you only need the **geometry and topology** (nodes, elements, sets), use this function.
-It returns a simple dictionary structure containing just the mesh data - perfect for:
+**Fast and lightweight** - extracts only the geometry and topology (nodes, elements, sets).
 
-- Visualizing geometry
-- Converting meshes to other formats
-- Quick mesh inspection
-- Building your own FEM implementations on top of ABAQUS geometries
+Returns a simple `Dict` structure perfect for:
+
+- 🎨 Visualizing geometry
+- 🔄 Converting meshes to other formats
+- 🔍 Quick mesh inspection
+- 🛠️ Building custom FEM implementations
+
+**Use when**: You need the mesh structure but not the physics.
 
 ### 2. Complete Model Parsing - `abaqus_read_model()`
 
-When you need to **reproduce the entire simulation**, use this function.
-It parses the complete simulation recipe including mesh, materials, boundary conditions,
-load steps, and analysis parameters - everything needed to:
+**Full simulation recipe** - parses everything needed to reproduce the analysis.
 
-- Fully understand the simulation setup
-- Reproduce the analysis in another solver
-- Extract complete simulation definitions programmatically
-- Analyze or modify simulation parameters
+Returns a structured `Model` object containing:
+
+- 📐 Mesh (nodes, elements, sets, surfaces)
+- 🧱 Materials and properties
+- 📍 Boundary conditions and loads
+- 📊 Analysis steps and outputs
+
+**Use when**: You need to understand or reproduce the complete simulation setup.
+
+---
 
 ## Important Notes
 
-Both functions are primarily tested with "flat" input files (the original ABAQUS input file structure).
-The more structured file format describing parts, assemblies, etc. may have limited support.
+- **File Format**: Both functions work best with "flat" ABAQUS input files. Structured formats (parts, assemblies) may have limited support.
 
-The `abaqus_read_model()` function parses many common ABAQUS features but does not cover every possible
-keyword and option in the ABAQUS specification. It handles typical use cases for extracting complete
-simulation definitions.
+- **Keyword Coverage**: `abaqus_read_model()` handles common ABAQUS keywords but doesn't cover every possible option. It's designed for typical simulation extraction use cases.
+
+- **Element Types**: We use clean topological types (`Tri3`, `Quad4`, `Tet4`, `Hex8`) instead of ABAQUS's physics-specific nomenclature. Original names are preserved in metadata for traceability.
