@@ -9,10 +9,10 @@
 
 ## 🚀 Try the Online Visualizer!
 
-**[Launch Online Visualizer →](https://ahojukka5.github.io/AbaqusReader.jl/stable/)**
+**[Launch Online Visualizer →](https://ahojukka5.github.io/AbaqusReader.jl/dev/)**
 
 Drag and drop your ABAQUS `.inp` files to see them visualized in 3D - no installation required!
-Click "Open Visualizer" on the documentation page to access the interactive 3D viewer.
+Click "Open Visualizer" button on the documentation page to access the interactive 3D viewer.
 
 ---
 
@@ -24,7 +24,7 @@ AbaqusReader.jl provides two distinct ways to read ABAQUS `.inp` files, dependin
 
 ### 1. **Mesh-Only Parsing** - `abaqus_read_mesh()`
 
-When you only need the **geometry and topology** (nodes, elements, sets), use this function. 
+When you only need the **geometry and topology** (nodes, elements, sets), use this function.
 It returns a simple dictionary structure containing just the mesh data - perfect for:
 
 - Visualizing geometry
@@ -35,7 +35,7 @@ It returns a simple dictionary structure containing just the mesh data - perfect
 ### 2. **Complete Model Parsing** - `abaqus_read_model()`
 
 When you need to **reproduce the entire simulation**, use this function.
-It parses the complete simulation recipe including mesh, materials, boundary conditions, 
+It parses the complete simulation recipe including mesh, materials, boundary conditions,
 load steps, and analysis parameters - everything needed to:
 
 - Fully understand the simulation setup
@@ -104,7 +104,7 @@ ABAQUS defines 100+ element types by mixing **orthogonal concerns**:
 - `CPE3` = plane strain triangle  
 - `CAX3` = axisymmetric triangle
 
-All three have **identical topology** (3 nodes, triangular) but different **physics formulations**. 
+All three have **identical topology** (3 nodes, triangular) but different **physics formulations**.
 
 Modern languages (Julia, C++, Rust) solve this with **templates, traits, or multiple dispatch** - keeping concerns separate and composable. ABAQUS is stuck in 1970s procedural thinking.
 

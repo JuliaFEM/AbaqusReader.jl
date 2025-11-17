@@ -1,10 +1,16 @@
 FROM julia:1.11
 
+# Install git-lfs for downloading test data files
+RUN apt-get update && apt-get install -y git-lfs && rm -rf /var/lib/apt/lists/*
+
 # Set working directory
 WORKDIR /app
 
-# Copy entire project
+# Copy entire project (including .git for LFS)
 COPY . .
+
+# Pull LFS files (testdata/*.inp)
+RUN git lfs install && git lfs pull
 
 # Change to backend directory for package operations
 WORKDIR /app/visualizer/backend
