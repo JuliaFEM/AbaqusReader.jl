@@ -1,16 +1,50 @@
-FROM julia:1.12.1
+FROM julia:1.12.1 AS builder
 
-# Install git-lfs
-RUN apt-get update && apt-get install -y git-lfs && rm -rf /var/lib/apt/lists/*
+# Install git and git-lfs for downloading test data
+RUN apt-get update && \
+    apt-get install -y git git-lfs curl && \
+    git lfs install --skip-repo && \
+    rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-# Copy the entire AbaqusReader.jl repo into the container
+# Copy source files
 COPY . /app/AbaqusReader.jl
 
-# Activate git-lfs and pull files (if .git present)
 WORKDIR /app/AbaqusReader.jl
-RUN git lfs install && git lfs pull || echo "LFS pull failed, continuing..."
+
+# Check if testdata files are LFS pointers and download them if needed
+RUN echo "Checking testdata files..." && \
+    if head -1 testdata/3d_beam.inp | grep -q "version https://git-lfs.github.com"; then \
+        echo "Files are LFS pointers - downloading from GitHub..." && \
+        cd testdata && \
+        for file in *.inp; do \
+            echo "Downloading $file..." && \
+            pointer_oid=$(grep "oid sha256:" "$file" | cut -d: -f2) && \
+            curl -L "https://media.githubusercontent.com/media/ahojukka5/AbaqusReader.jl/master/testdata/$file" -o "$file.tmp" && \
+            mv "$file.tmp" "$file"; \
+        done && \
+        cd .. && \
+        echo "LFS files downloaded successfully"; \
+    else \
+        echo "Files are already checked out"; \
+    fi && \
+    ls -lh testdata/*.inp
+
+# Final stage
+FROM julia:1.12.1
+
+WORKDIR /app
+
+# Copy the repo with actual testdata files from builder
+COPY --from=builder /app/AbaqusReader.jl /app/AbaqusReader.jl
+
+WORKDIR /app/AbaqusReader.jl
+
+# Verify testdata
+RUN echo "Verifying testdata files in final image..." && \
+    ls -lh testdata/*.inp && \
+    head -2 testdata/3d_beam.inp
 
 # Instantiate dependencies for visualizer
 RUN julia --project=visualizer -e 'using Pkg; Pkg.develop(path="/app/AbaqusReader.jl"); Pkg.instantiate(); Pkg.precompile()'
@@ -18,5 +52,5 @@ RUN julia --project=visualizer -e 'using Pkg; Pkg.develop(path="/app/AbaqusReade
 # Expose default port
 EXPOSE 8080
 
-# Start the Julia server from the copied repo with correct project
+# Start the Julia server
 CMD ["julia", "--project=visualizer", "-e", "import AbaqusReaderAPI; AbaqusReaderAPI.start()"]
