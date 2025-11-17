@@ -133,6 +133,51 @@
             display: none;
         }
 
+        /* Test files section */
+        .test-files-section {
+            margin-top: 30px;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .or-divider {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.9em;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .test-file-select {
+            width: 100%;
+            padding: 12px 15px;
+            font-size: 1em;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            backdrop-filter: blur(10px);
+        }
+
+        .test-file-select:hover {
+            background: rgba(255, 255, 255, 0.25);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .test-file-select:focus {
+            outline: none;
+            border-color: #4063D8;
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .test-file-select option {
+            background: #1a1a1a;
+            color: white;
+            padding: 10px;
+        }
+
         /* Info card in bottom-left */
         .info-card {
             position: absolute;
@@ -605,6 +650,17 @@
                     <p>Drop your .inp file here or click to browse</p>
                     <button class="browse-btn" @click="$refs.fileInput.click()">Browse Files</button>
                     <input ref="fileInput" type="file" class="file-input" accept=".inp" @change="handleFileSelect">
+
+                    <!-- Test models dropdown -->
+                    <div v-if="testFiles.length > 0" class="test-files-section">
+                        <div class="or-divider">or try a demo model</div>
+                        <select v-model="selectedTestFile" @change="loadTestFile" class="test-file-select">
+                            <option value="">Select a demo model...</option>
+                            <option v-for="file in testFiles" :key="file.name" :value="file.name">
+                                {{ formatTestFileName(file.name) }} ({{ file.size_formatted }})
+                            </option>
+                        </select>
+                    </div>
                 </div>
             </div>
 
@@ -696,7 +752,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=26"></script>
+    <script src="app.js?v=27"></script>
 </body>
 
 </html>
