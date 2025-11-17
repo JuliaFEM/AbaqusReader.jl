@@ -4,7 +4,6 @@ module AbaqusReaderAPI
 using HTTP
 using JSON3
 using AbaqusReader
-import AbaqusReader: abaqus_parse_mesh, abaqus_parse_model
 
 # CORS headers for cross-origin requests
 const CORS_HEADERS = [
@@ -136,15 +135,15 @@ function parse_handler(req::HTTP.Request)
                 JSON3.write(Dict("error" => "No file content provided")))
         end
 
-        # Parse as mesh first (use imported function to avoid module-binding issues)
-        mesh = abaqus_parse_mesh(content, verbose=false)
+        # Parse as mesh first
+        mesh = AbaqusReader.abaqus_parse_mesh(content, verbose=false)
         result = mesh_to_json(mesh)
         result["success"] = true
         result["parse_type"] = "mesh"
 
         # Try to parse as complete model for additional info
         try
-            model = abaqus_parse_model(content)
+            model = AbaqusReader.abaqus_parse_model(content)
             result["model"] = model_to_json(model)
             result["parse_type"] = "full"
         catch e
@@ -272,7 +271,7 @@ function load_testdata_handler(req::HTTP.Request)
         content = read(filepath, String)
 
         # Parse as mesh
-        mesh = abaqus_parse_mesh(content, verbose=false)
+        mesh = AbaqusReader.abaqus_parse_mesh(content, verbose=false)
         result = mesh_to_json(mesh)
         result["success"] = true
         result["parse_type"] = "mesh"
@@ -280,7 +279,7 @@ function load_testdata_handler(req::HTTP.Request)
 
         # Try to parse as complete model for additional info
         try
-            model = abaqus_parse_model(content)
+            model = AbaqusReader.abaqus_parse_model(content)
             result["model"] = model_to_json(model)
             result["parse_type"] = "full"
         catch e
