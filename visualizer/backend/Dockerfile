@@ -9,8 +9,8 @@ WORKDIR /app
 # Pull LFS files (Railway provides .git directory)
 RUN git lfs install && git lfs pull || echo "LFS pull failed, continuing..."
 
-# Copy backend code
-COPY visualizer/backend/ visualizer/backend/
+# Copy all project files
+COPY . .
 
 # Verify test files were pulled
 RUN [ -d testdata ] && ls -lh testdata/ || echo "No testdata directory"
