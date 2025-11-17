@@ -1,0 +1,51 @@
+# Test Data
+
+This directory contains ABAQUS `.inp` files for testing and benchmarking AbaqusReader.jl.
+
+All files are tracked with **Git LFS** to keep the repository size manageable.
+
+## Files
+
+| File | Size | Elements | Description | Source |
+|------|------|----------|-------------|--------|
+| `3d_beam.inp` | 34 KB | ~300 | 3D beam with Tet4 elements | JuliaFEM.jl |
+| `beam_3d_tet10.inp` | 157 KB | ~1,500 | 3D beam with Tet10 (quadratic) elements | JuliaFEM.jl |
+| `flange_coupling.inp` | 1.2 MB | ~12,000 | Flange coupling with tie contact | JuliaFEM.jl |
+| `piston_medium.inp` | 2.5 MB | ~9,000 | Medium-sized piston mesh | JuliaFEM.jl |
+| `piston_large.inp` | 15 MB | ~46,000 | Large piston mesh for performance testing | JuliaFEM.jl |
+
+## Usage
+
+```julia
+using AbaqusReader
+
+# Test with a small file
+mesh = abaqus_read_mesh("testdata/3d_beam.inp")
+println("Nodes: ", length(mesh["nodes"]))
+println("Elements: ", length(mesh["elements"]))
+
+# Test with a large file (performance)
+@time mesh = abaqus_read_mesh("testdata/piston_large.inp")
+```
+
+## Adding More Files
+
+To add new test files:
+
+1. Place the `.inp` file in this directory
+2. Add it to Git LFS tracking: `git lfs track "*.inp"`
+3. Update this README with file details
+4. Commit: `git add testdata/yourfile.inp testdata/README.md`
+
+## Sources
+
+All files originally from **JuliaFEM.jl** project backup (2025-11-06):
+- Repository: https://github.com/JuliaFEM/JuliaFEM.jl
+- License: MIT (same as AbaqusReader.jl)
+- Original paths preserved in file history
+
+These files represent real-world FEM models and provide excellent test cases for:
+- Different element types (Tet4, Tet10, Hex8)
+- Various mesh sizes (300 to 46,000 elements)
+- Complex geometries (pistons, flange couplings)
+- Performance benchmarking
