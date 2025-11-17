@@ -16,7 +16,7 @@ RUN [ -d testdata ] && ls -lh testdata/ || echo "No testdata directory"
 WORKDIR /app/visualizer/backend
 
 # Install Julia dependencies
-RUN julia --project=. -e 'using Pkg; Pkg.instantiate(); Pkg.develop(path="/app")'
+RUN julia --project=. -e 'using Pkg; Pkg.instantiate()'
 
 # Expose port
 EXPOSE 8080
