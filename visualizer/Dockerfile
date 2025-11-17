@@ -13,23 +13,34 @@ COPY . /app/AbaqusReader.jl
 
 WORKDIR /app/AbaqusReader.jl
 
-# Check if testdata files are LFS pointers and download them if needed
-RUN echo "Checking testdata files..." && \
-    if head -1 testdata/3d_beam.inp | grep -q "version https://git-lfs.github.com"; then \
-        echo "Files are LFS pointers - downloading from GitHub..." && \
-        cd testdata && \
-        for file in *.inp; do \
-            echo "Downloading $file..." && \
-            pointer_oid=$(grep "oid sha256:" "$file" | cut -d: -f2) && \
-            curl -L "https://media.githubusercontent.com/media/ahojukka5/AbaqusReader.jl/master/testdata/$file" -o "$file.tmp" && \
-            mv "$file.tmp" "$file"; \
-        done && \
-        cd .. && \
-        echo "LFS files downloaded successfully"; \
+# Check if testdata directory exists and files are LFS pointers
+RUN echo "Current directory: $(pwd)" && \
+    echo "Directory contents:" && \
+    ls -la && \
+    if [ -d "testdata" ]; then \
+        echo "testdata directory exists" && \
+        ls -la testdata/ && \
+        if [ -f "testdata/3d_beam.inp" ] && head -1 testdata/3d_beam.inp | grep -q "version https://git-lfs.github.com"; then \
+            echo "Files are LFS pointers - downloading from GitHub..." && \
+            cd testdata && \
+            for file in *.inp; do \
+                if [ -f "$file" ]; then \
+                    echo "Downloading $file..." && \
+                    curl -L "https://media.githubusercontent.com/media/ahojukka5/AbaqusReader.jl/master/testdata/$file" -o "$file.tmp" && \
+                    mv "$file.tmp" "$file"; \
+                fi \
+            done && \
+            cd .. && \
+            echo "LFS files downloaded successfully" && \
+            ls -lh testdata/*.inp; \
+        else \
+            echo "Files are already checked out" && \
+            ls -lh testdata/*.inp; \
+        fi \
     else \
-        echo "Files are already checked out"; \
-    fi && \
-    ls -lh testdata/*.inp
+        echo "ERROR: testdata directory not found!"; \
+        exit 1; \
+    fi
 
 # Final stage
 FROM julia:1.12.1

@@ -1,0 +1,20 @@
+# Don't include git metadata (except we need it for Railway's LFS handling)
+.git
+.github
+
+# Don't include development files
+.vscode
+*.swp
+*.cov
+coverage.info
+
+# Don't include build artifacts
+docs/build/
+docs/site/
+build/
+
+# Don't include test outputs
+test_output.log
+
+# IMPORTANT: DO NOT ignore testdata - we need these files in the Docker image!
+# testdata/  <-- commented out, we WANT testdata in the image
