@@ -1,8 +1,10 @@
-#!/usr/bin/env julia
+
+module AbaqusReaderAPI
 
 using HTTP
 using JSON3
-using AbaqusReader: abaqus_parse_mesh, abaqus_parse_model
+using AbaqusReader
+import AbaqusReader: abaqus_parse_mesh, abaqus_parse_model
 
 # CORS headers for cross-origin requests
 const CORS_HEADERS = [
@@ -134,15 +136,15 @@ function parse_handler(req::HTTP.Request)
                 JSON3.write(Dict("error" => "No file content provided")))
         end
 
-        # Parse as mesh first
-        mesh = abaqus_parse_mesh(content, verbose=false)
+        # Parse as mesh first (call fully-qualified to avoid import-time binding issues)
+        mesh = AbaqusReader.abaqus_parse_mesh(content, verbose=false)
         result = mesh_to_json(mesh)
         result["success"] = true
         result["parse_type"] = "mesh"
 
         # Try to parse as complete model for additional info
         try
-            model = abaqus_parse_model(content)
+            model = AbaqusReader.abaqus_parse_model(content)
             result["model"] = model_to_json(model)
             result["parse_type"] = "full"
         catch e
@@ -332,17 +334,12 @@ function router(req::HTTP.Request)
     end
 end
 
-# Start server
-function main()
-    port = parse(Int, get(ENV, "PORT", "8080"))
-    host = get(ENV, "HOST", "0.0.0.0")
-
+"""
+Start the AbaqusReader API server
+"""
+function start(; host::AbstractString=get(ENV, "HOST", "0.0.0.0"), port::Integer=parse(Int, get(ENV, "PORT", "8080")))
     @info "Starting AbaqusReader API server on $host:$port"
-
     HTTP.serve(router, host, port)
 end
 
-# Run if executed directly
-if abspath(PROGRAM_FILE) == @__FILE__
-    main()
-end
+end # module AbaqusReaderAPI

@@ -1,8 +1,10 @@
 name = "AbaqusReaderAPI"
-uuid = "a1b2c3d4-5e6f-7890-abcd-ef1234567890"
+uuid = "65585a29-2f42-4c36-ba0c-7723145a4223"
 version = "0.1.0"
+authors = ["Jukka Aho <ahojukka5@gmail.com>"]
 
 [deps]
 AbaqusReader = "bc6b9049-e460-56d6-94b4-a597b2c0390d"
 HTTP = "cd3eb016-35fb-5094-929b-558a96fad6f3"
 JSON3 = "0f8b85d8-7281-11e9-16c2-39a750bddbf1"
+Logging = "56ddb016-857b-54e1-b83d-db4d58db5568"

@@ -12,11 +12,11 @@ COPY . /app/AbaqusReader.jl
 WORKDIR /app/AbaqusReader.jl
 RUN git lfs install && git lfs pull || echo "LFS pull failed, continuing..."
 
-# Instantiate dependencies for visualizer/backend
-RUN julia --project=visualizer/backend -e 'using Pkg; Pkg.instantiate(); Pkg.precompile()'
+# Instantiate dependencies for visualizer
+RUN julia --project=visualizer -e 'using Pkg; Pkg.develop(path="/app/AbaqusReader.jl"); Pkg.instantiate(); Pkg.precompile()'
 
 # Expose default port
 EXPOSE 8080
 
 # Start the Julia server from the copied repo with correct project
-CMD ["julia", "--project=visualizer/backend", "visualizer/backend/server.jl"]
+CMD ["julia", "--project=visualizer", "-e", "import AbaqusReaderAPI; AbaqusReaderAPI.start()"]
