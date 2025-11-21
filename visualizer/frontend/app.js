@@ -459,11 +459,9 @@ createApp({
             edgeGeometry.setAttribute('position', geometry.getAttribute('position'));
             edgeGeometry.setIndex(edges);
 
-            // Create solid faces with semi-transparent material
+            // Create solid faces with Julia purple material
             const solidMaterial = new THREE.MeshPhongMaterial({
                 color: 0x9558B2,  // Julia purple
-                opacity: 0.7,
-                transparent: true,
                 side: THREE.DoubleSide,
                 flatShading: true
             });
