@@ -36,7 +36,9 @@ createApp({
             slowWarningTimeout: null,
             testFiles: [],  // Available test files
             selectedTestFile: '',  // Currently selected test file
-            displayMode: 'solid'  // Display mode: 'solid', 'wireframe', 'points'
+            showSolid: true,  // Show solid mesh
+            showWireframe: false,  // Show wireframe
+            showPoints: false  // Show points
         };
     },
 
@@ -187,13 +189,13 @@ createApp({
             directionalLight.position.set(1, 1, 1);
             this.scene.add(directionalLight);
 
-            // Grid
-            const gridHelper = new THREE.GridHelper(100, 20, 0x888888, 0xdddddd);
-            this.scene.add(gridHelper);
+            // Grid (will be resized when mesh is loaded)
+            this.gridHelper = new THREE.GridHelper(100, 20, 0x888888, 0xdddddd);
+            this.scene.add(this.gridHelper);
 
-            // Axes
-            const axesHelper = new THREE.AxesHelper(20);
-            this.scene.add(axesHelper);
+            // Axes (will be resized when mesh is loaded)
+            this.axesHelper = new THREE.AxesHelper(20);
+            this.scene.add(this.axesHelper);
 
             // Animation loop
             this.animate();
@@ -505,7 +507,7 @@ createApp({
             // Create wireframe edges
             const edgeMaterial = new THREE.LineBasicMaterial({
                 color: 0x389826,  // Julia green
-                linewidth: 2
+                linewidth: 4
             });
 
             // Create mesh - wrapped with markRaw
@@ -516,7 +518,7 @@ createApp({
             // Add points for nodes
             const pointsMaterial = new THREE.PointsMaterial({
                 color: 0xCB3C33,  // Julia red
-                size: 3,
+                size: 6,
                 sizeAttenuation: false
             });
             const points = markRaw(new THREE.Points(geometry, pointsMaterial));
@@ -536,6 +538,24 @@ createApp({
             const size = new THREE.Vector3();
             bbox.getSize(size);
             const maxDim = Math.max(size.x, size.y, size.z);
+
+            // Update grid to match model size and position
+            if (this.gridHelper) {
+                this.scene.remove(this.gridHelper);
+            }
+            const gridSize = maxDim * 2; // Make grid 2x the model size
+            const gridDivisions = Math.max(10, Math.floor(gridSize / 10));
+            this.gridHelper = new THREE.GridHelper(gridSize, gridDivisions, 0x888888, 0x444444);
+            this.gridHelper.position.set(center.x, bbox.min.y, center.z);
+            this.scene.add(this.gridHelper);
+
+            // Update axes to match model scale
+            if (this.axesHelper) {
+                this.scene.remove(this.axesHelper);
+            }
+            this.axesHelper = new THREE.AxesHelper(maxDim * 0.5);
+            this.axesHelper.position.copy(center);
+            this.scene.add(this.axesHelper);
 
             this.camera.position.set(
                 center.x + maxDim * 1.5,
@@ -618,13 +638,13 @@ createApp({
 
         updateDisplayMode() {
             if (this.solidMesh) {
-                this.solidMesh.visible = this.displayMode === 'solid';
+                this.solidMesh.visible = this.showSolid;
             }
             if (this.mesh) {
-                this.mesh.visible = this.displayMode === 'wireframe';
+                this.mesh.visible = this.showWireframe;
             }
             if (this.pointsMesh) {
-                this.pointsMesh.visible = this.displayMode === 'points';
+                this.pointsMesh.visible = this.showPoints;
             }
         }
     }

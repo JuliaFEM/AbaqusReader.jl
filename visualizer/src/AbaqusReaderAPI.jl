@@ -271,7 +271,7 @@ function parse_handler(req::HTTP.Request)
 
     catch e
         error_msg = sprint(showerror, e, catch_backtrace())
-        @error "Parsing failed" exception = e
+        @error "Parsing failed"
 
         result = Dict(
             "success" => false,
@@ -406,7 +406,7 @@ function load_testdata_handler(req::HTTP.Request)
 
     catch e
         error_msg = sprint(showerror, e, catch_backtrace())
-        @error "Failed to load testdata file" exception = e
+        @error "Failed to load testdata file: $(string(e))"
 
         result = Dict(
             "success" => false,
@@ -458,3 +458,8 @@ function start(; host::AbstractString=get(ENV, "HOST", "0.0.0.0"), port::Integer
 end
 
 end # module AbaqusReaderAPI
+
+# Start server if run as script
+if abspath(PROGRAM_FILE) == @__FILE__
+    AbaqusReaderAPI.start()
+end

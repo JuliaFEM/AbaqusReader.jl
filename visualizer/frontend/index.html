@@ -379,26 +379,37 @@
             color: #4063D8;
         }
 
-        .display-mode-select {
-            width: 100%;
-            padding: 12px;
-            font-size: 1em;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            background: white;
-            color: #333;
+        .display-toggles {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .toggle-btn {
+            flex: 1;
+            min-width: 85px;
+            padding: 10px 16px;
+            background: rgba(50, 50, 50, 0.5);
+            color: rgba(255, 255, 255, 0.7);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 6px;
+            font-size: 0.9em;
             cursor: pointer;
             transition: all 0.3s;
+            text-align: center;
+            white-space: nowrap;
         }
 
-        .display-mode-select:hover {
-            border-color: #9558B2;
+        .toggle-btn:hover {
+            background: rgba(149, 88, 178, 0.3);
+            border-color: rgba(149, 88, 178, 0.6);
+            color: white;
         }
 
-        .display-mode-select:focus {
-            outline: none;
+        .toggle-btn.active {
+            background: #9558B2;
+            color: white;
             border-color: #9558B2;
-            box-shadow: 0 0 0 3px rgba(149, 88, 178, 0.1);
         }
 
         .info-section {
@@ -796,12 +807,27 @@
                     </div>
 
                     <div class="info-section">
-                        <h4>👁️ Display Mode</h4>
-                        <select v-model="displayMode" @change="updateDisplayMode" class="display-mode-select">
-                            <option value="solid">Solid</option>
-                            <option value="wireframe">Wireframe</option>
-                            <option value="points">Points</option>
-                        </select>
+                        <h4>👁️ Display</h4>
+                        <div class="display-toggles">
+                            <button 
+                                class="toggle-btn" 
+                                :class="{ active: showSolid }"
+                                @click="showSolid = !showSolid; updateDisplayMode()">
+                                Solid
+                            </button>
+                            <button 
+                                class="toggle-btn" 
+                                :class="{ active: showWireframe }"
+                                @click="showWireframe = !showWireframe; updateDisplayMode()">
+                                Wireframe
+                            </button>
+                            <button 
+                                class="toggle-btn" 
+                                :class="{ active: showPoints }"
+                                @click="showPoints = !showPoints; updateDisplayMode()">
+                                Points
+                            </button>
+                        </div>
                     </div>
 
                     <div class="info-section" v-if="meshData.has_parts && meshData.part_names.length > 0">
