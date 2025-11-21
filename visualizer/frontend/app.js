@@ -35,7 +35,8 @@ createApp({
             showSlowWarning: false,
             slowWarningTimeout: null,
             testFiles: [],  // Available test files
-            selectedTestFile: ''  // Currently selected test file
+            selectedTestFile: '',  // Currently selected test file
+            displayMode: 'solid'  // Display mode: 'solid', 'wireframe', 'points'
         };
     },
 
@@ -523,6 +524,9 @@ createApp({
             this.scene.add(points);
             console.log('Added points to scene');
 
+            // Set initial visibility based on display mode
+            this.updateDisplayMode();
+
             // Center and fit camera
             geometry.computeBoundingBox();
             const bbox = geometry.boundingBox;
@@ -610,6 +614,18 @@ createApp({
 
         showWhyDialog() {
             this.showWhy = true;
+        },
+
+        updateDisplayMode() {
+            if (this.solidMesh) {
+                this.solidMesh.visible = this.displayMode === 'solid';
+            }
+            if (this.mesh) {
+                this.mesh.visible = this.displayMode === 'wireframe';
+            }
+            if (this.pointsMesh) {
+                this.pointsMesh.visible = this.displayMode === 'points';
+            }
         }
     }
 }).mount('#app');

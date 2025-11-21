@@ -379,6 +379,28 @@
             color: #4063D8;
         }
 
+        .display-mode-select {
+            width: 100%;
+            padding: 12px;
+            font-size: 1em;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            background: white;
+            color: #333;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .display-mode-select:hover {
+            border-color: #9558B2;
+        }
+
+        .display-mode-select:focus {
+            outline: none;
+            border-color: #9558B2;
+            box-shadow: 0 0 0 3px rgba(149, 88, 178, 0.1);
+        }
+
         .info-section {
             margin-bottom: 20px;
         }
@@ -771,6 +793,15 @@
                             <div class="stat-label">Node Sets</div>
                             <div class="stat-value">{{ meshData.stats.num_node_sets }}</div>
                         </div>
+                    </div>
+
+                    <div class="info-section">
+                        <h4>👁️ Display Mode</h4>
+                        <select v-model="displayMode" @change="updateDisplayMode" class="display-mode-select">
+                            <option value="solid">Solid</option>
+                            <option value="wireframe">Wireframe</option>
+                            <option value="points">Points</option>
+                        </select>
                     </div>
 
                     <div class="info-section" v-if="meshData.has_parts && meshData.part_names.length > 0">
