@@ -3,6 +3,7 @@
     "build": {
         "builder": "DOCKERFILE",
         "dockerfilePath": "visualizer/Dockerfile",
+        "buildContext": ".",
         "watchPatterns": [
             "visualizer/**",
             "src/**",
