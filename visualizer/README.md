@@ -39,11 +39,16 @@ Also, we wanted to prove that Julia can do web stuff, and do it well.
 ### Using Podman/Docker (Recommended)
 
 ```bash
-# Build and run
-podman-compose up
+# Build from repository root (Dockerfile is at root as Dockerfile.visualizer)
+cd /path/to/AbaqusReader.jl
+podman build -f Dockerfile.visualizer -t abaqus-visualizer .
+
+# Run
+podman run -p 8080:8080 abaqus-visualizer
 
 # or with Docker
-docker-compose up
+docker build -f Dockerfile.visualizer -t abaqus-visualizer .
+docker run -p 8080:8080 abaqus-visualizer
 ```
 
 Open http://localhost:3000 and start dropping files.
