@@ -5,6 +5,111 @@ using HTTP
 using JSON3
 using AbaqusReader
 
+# Mapping for extracting surface faces from volume elements
+const VOLUME_TO_SURFACE_FACES = Dict(
+    # Tet4: 4 triangular faces
+    :Tet4 => [
+        [1, 3, 2],  # Face 1
+        [1, 2, 4],  # Face 2
+        [2, 3, 4],  # Face 3
+        [1, 4, 3]   # Face 4
+    ],
+    # Tet10: 4 triangular faces (use only corner nodes for linear visualization)
+    :Tet10 => [
+        [1, 3, 2],  # Face 1
+        [1, 2, 4],  # Face 2
+        [2, 3, 4],  # Face 3
+        [1, 4, 3]   # Face 4
+    ],
+    # Hex8: 6 quadrilateral faces
+    :Hex8 => [
+        [1, 2, 3, 4],  # Face 1
+        [5, 8, 7, 6],  # Face 2
+        [1, 5, 6, 2],  # Face 3
+        [2, 6, 7, 3],  # Face 4
+        [3, 7, 8, 4],  # Face 5
+        [4, 8, 5, 1]   # Face 6
+    ],
+    # Hex20: 6 quadrilateral faces (use only corner nodes)
+    :Hex20 => [
+        [1, 2, 3, 4],  # Face 1
+        [5, 8, 7, 6],  # Face 2
+        [1, 5, 6, 2],  # Face 3
+        [2, 6, 7, 3],  # Face 4
+        [3, 7, 8, 4],  # Face 5
+        [4, 8, 5, 1]   # Face 6
+    ],
+    # Wedge6: 5 faces (2 triangular, 3 quadrilateral)
+    :Wedge6 => [
+        [1, 3, 2],     # Tri face 1
+        [4, 5, 6],     # Tri face 2
+        [1, 2, 5, 4],  # Quad face 1
+        [2, 3, 6, 5],  # Quad face 2
+        [3, 1, 4, 6]   # Quad face 3
+    ],
+    # Wedge15: 5 faces (use only corner nodes)
+    :Wedge15 => [
+        [1, 3, 2],     # Tri face 1
+        [4, 5, 6],     # Tri face 2
+        [1, 2, 5, 4],  # Quad face 1
+        [2, 3, 6, 5],  # Quad face 2
+        [3, 1, 4, 6]   # Quad face 3
+    ]
+)
+
+"""
+Extract boundary faces from volume elements for visualization.
+Only exports exterior faces that are not shared with other elements.
+"""
+function extract_surface_faces(mesh::Dict)
+    elements = mesh["elements"]
+    element_types = mesh["element_types"]
+    
+    # Build a dictionary of face -> [element_ids] to identify boundary faces
+    face_count = Dict{Vector{Int}, Int}()
+    
+    for (elem_id, connectivity) in elements
+        elem_type = element_types[elem_id]
+        
+        # Skip if not a volume element type we know
+        if !haskey(VOLUME_TO_SURFACE_FACES, elem_type)
+            continue
+        end
+        
+        # Extract all faces from this element
+        for face_nodes_local in VOLUME_TO_SURFACE_FACES[elem_type]
+            # Map local node indices to global node IDs
+            face_nodes_global = [connectivity[i] for i in face_nodes_local]
+            # Sort to make face orientation-independent for counting
+            face_key = sort(face_nodes_global)
+            face_count[face_key] = get(face_count, face_key, 0) + 1
+        end
+    end
+    
+    # Extract only boundary faces (appear exactly once)
+    boundary_faces = Vector{Vector{Int}}()
+    
+    for (elem_id, connectivity) in elements
+        elem_type = element_types[elem_id]
+        
+        if !haskey(VOLUME_TO_SURFACE_FACES, elem_type)
+            continue
+        end
+        
+        for face_nodes_local in VOLUME_TO_SURFACE_FACES[elem_type]
+            face_nodes_global = [connectivity[i] for i in face_nodes_local]
+            face_key = sort(face_nodes_global)
+            
+            # Only include faces that appear exactly once (boundary)
+            if face_count[face_key] == 1
+                push!(boundary_faces, face_nodes_global)
+            end
+        end
+    end
+    
+    return boundary_faces
+end
+
 # CORS headers for cross-origin requests
 const CORS_HEADERS = [
     "Access-Control-Allow-Origin" => "*",
@@ -30,18 +135,28 @@ function mesh_to_json(mesh::Dict)
     end
     result["nodes"] = nodes
 
-    # Convert elements to connectivity arrays
+    # Extract surface faces from volume elements for visualization
+    surface_faces = extract_surface_faces(mesh)
+    
+    # Convert faces to 0-based node indices
     elements = []
     element_types = []
-    element_ids = sort(collect(keys(mesh["elements"])))
-
-    for elem_id in element_ids
-        connectivity = mesh["elements"][elem_id]
+    
+    for face_nodes in surface_faces
         # Map node IDs to 0-based indices
-        mapped_connectivity = [node_map[nid] for nid in connectivity]
-        push!(elements, mapped_connectivity)
-        push!(element_types, String(mesh["element_types"][elem_id]))
+        mapped_face = [node_map[nid] for nid in face_nodes]
+        push!(elements, mapped_face)
+        
+        # Determine element type based on face size
+        if length(face_nodes) == 3
+            push!(element_types, "Tri3")
+        elseif length(face_nodes) == 4
+            push!(element_types, "Quad4")
+        else
+            push!(element_types, "Polygon")
+        end
     end
+    
     result["elements"] = elements
     result["element_types"] = element_types
 
@@ -54,7 +169,8 @@ function mesh_to_json(mesh::Dict)
         "num_nodes" => length(nodes),
         "num_elements" => length(elements),
         "num_element_sets" => length(mesh["element_sets"]),
-        "num_node_sets" => length(mesh["node_sets"])
+        "num_node_sets" => length(mesh["node_sets"]),
+        "num_surface_faces" => length(surface_faces)
     )
 
     # If PART/ASSEMBLY format, include parts info

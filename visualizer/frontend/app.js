@@ -470,11 +470,23 @@ createApp({
 
             // Create mesh from elements as faces
             const faceIndices = [];
-            elements.forEach(elem => {
-                // Triangulate faces (simple fan triangulation from first vertex)
-                // Reverse winding order to match Three.js convention (CCW from outside)
-                for (let i = 1; i < elem.length - 1; i++) {
-                    faceIndices.push(elem[0], elem[i + 1], elem[i]);
+            elements.forEach((elem, idx) => {
+                const elemType = data.element_types[idx];
+                
+                if (elemType === 'Tri3' && elem.length === 3) {
+                    // Triangle - add directly
+                    faceIndices.push(elem[0], elem[1], elem[2]);
+                } else if (elemType === 'Quad4' && elem.length === 4) {
+                    // Quad - split into two triangles
+                    // Triangle 1: v0, v1, v2
+                    faceIndices.push(elem[0], elem[1], elem[2]);
+                    // Triangle 2: v0, v2, v3
+                    faceIndices.push(elem[0], elem[2], elem[3]);
+                } else {
+                    // Fallback: fan triangulation for polygons
+                    for (let i = 1; i < elem.length - 1; i++) {
+                        faceIndices.push(elem[0], elem[i], elem[i + 1]);
+                    }
                 }
             });
 
