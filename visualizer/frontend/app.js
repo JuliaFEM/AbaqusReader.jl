@@ -472,8 +472,9 @@ createApp({
             const faceIndices = [];
             elements.forEach(elem => {
                 // Triangulate faces (simple fan triangulation from first vertex)
+                // Reverse winding order to match Three.js convention (CCW from outside)
                 for (let i = 1; i < elem.length - 1; i++) {
-                    faceIndices.push(elem[0], elem[i], elem[i + 1]);
+                    faceIndices.push(elem[0], elem[i + 1], elem[i]);
                 }
             });
 
