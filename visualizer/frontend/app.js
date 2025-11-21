@@ -463,7 +463,10 @@ createApp({
             const solidMaterial = new THREE.MeshPhongMaterial({
                 color: 0x9558B2,  // Julia purple
                 side: THREE.DoubleSide,
-                flatShading: true
+                flatShading: true,
+                opacity: 1.0,
+                transparent: false,
+                depthWrite: true
             });
 
             // Create mesh from elements as faces
