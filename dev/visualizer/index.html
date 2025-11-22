@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AbaqusReader.jl - Online Visualizer</title>
-    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <!-- favicon removed; use site defaults or set a new favicon if desired -->
     <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.prod.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="OrbitControls.js"></script>
@@ -90,7 +90,7 @@
         .drop-content {
             text-align: center;
             color: white;
-            max-width: 500px;
+            max-width: 600px;
             padding: 40px;
         }
 
@@ -102,14 +102,34 @@
 
         .drop-content h2 {
             font-size: 2em;
-            margin-bottom: 15px;
+            margin-bottom: 30px;
             color: #4063D8;
         }
 
-        .drop-content p {
-            font-size: 1.2em;
-            opacity: 0.7;
+        .upload-section {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px dashed rgba(255, 255, 255, 0.3);
+            border-radius: 15px;
+            padding: 30px;
             margin-bottom: 30px;
+            transition: all 0.3s;
+        }
+
+        .upload-section:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .upload-section h3 {
+            font-size: 1.3em;
+            color: #4063D8;
+            margin-bottom: 10px;
+        }
+
+        .upload-section p {
+            font-size: 0.95em;
+            opacity: 0.7;
+            margin-bottom: 20px;
         }
 
         .browse-btn {
@@ -135,17 +155,49 @@
 
         /* Test files section */
         .test-files-section {
-            margin-top: 30px;
             width: 100%;
-            max-width: 400px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            padding: 30px;
+            transition: all 0.3s;
+        }
+
+        .test-files-section:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .test-files-section h3 {
+            font-size: 1.3em;
+            color: #389826;
+            margin-bottom: 10px;
+        }
+
+        .test-files-section p {
+            font-size: 0.95em;
+            opacity: 0.7;
+            margin-bottom: 20px;
         }
 
         .or-divider {
-            color: rgba(255, 255, 255, 0.6);
-            font-size: 0.9em;
-            margin-bottom: 15px;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 1.1em;
+            margin: 30px 0;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 2px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .or-divider::before,
+        .or-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
         }
 
         .test-file-select {
@@ -325,6 +377,39 @@
             font-size: 1.8em;
             font-weight: bold;
             color: #4063D8;
+        }
+
+        .display-toggles {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .toggle-btn {
+            flex: 1;
+            min-width: 85px;
+            padding: 10px 16px;
+            background: rgba(50, 50, 50, 0.5);
+            color: rgba(255, 255, 255, 0.7);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 6px;
+            font-size: 0.9em;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .toggle-btn:hover {
+            background: rgba(149, 88, 178, 0.3);
+            border-color: rgba(149, 88, 178, 0.6);
+            color: white;
+        }
+
+        .toggle-btn.active {
+            background: #9558B2;
+            color: white;
+            border-color: #9558B2;
         }
 
         .info-section {
@@ -646,14 +731,25 @@
                 @dragover.prevent="dragging = true" @dragleave="dragging = false" @drop.prevent="handleDrop">
                 <div class="drop-content">
                     <div class="drop-icon">📦</div>
-                    <h2>Visualize ABAQUS Mesh</h2>
-                    <p>Drop your .inp file here or click to browse</p>
-                    <button class="browse-btn" @click="$refs.fileInput.click()">Browse Files</button>
-                    <input ref="fileInput" type="file" class="file-input" accept=".inp" @change="handleFileSelect">
+                    <h2>ABAQUS Mesh Visualizer</h2>
+
+                    <!-- Upload your own file section -->
+                    <div class="upload-section">
+                        <h3>📁 Load Your Own File</h3>
+                        <p>Upload your ABAQUS .inp file to visualize</p>
+                        <button class="browse-btn" @click="$refs.fileInput.click()">Browse Files</button>
+                        <input ref="fileInput" type="file" class="file-input" accept=".inp" @change="handleFileSelect">
+                    </div>
+
+                    <!-- Or divider -->
+                    <div v-if="testFiles.length > 0" class="or-divider">
+                        <span>OR</span>
+                    </div>
 
                     <!-- Test models dropdown -->
                     <div v-if="testFiles.length > 0" class="test-files-section">
-                        <div class="or-divider">or try a demo model</div>
+                        <h3>🎯 Try a Demo Model</h3>
+                        <p>Select a predefined model to see how the parser works</p>
                         <select v-model="selectedTestFile" @change="loadTestFile" class="test-file-select">
                             <option value="">Select a demo model...</option>
                             <option v-for="file in testFiles" :key="file.name" :value="file.name">
@@ -707,6 +803,30 @@
                         <div class="stat-item">
                             <div class="stat-label">Node Sets</div>
                             <div class="stat-value">{{ meshData.stats.num_node_sets }}</div>
+                        </div>
+                    </div>
+
+                    <div class="info-section">
+                        <h4>👁️ Display</h4>
+                        <div class="display-toggles">
+                            <button 
+                                class="toggle-btn" 
+                                :class="{ active: showSolid }"
+                                @click="showSolid = !showSolid; updateDisplayMode()">
+                                Solid
+                            </button>
+                            <button 
+                                class="toggle-btn" 
+                                :class="{ active: showWireframe }"
+                                @click="showWireframe = !showWireframe; updateDisplayMode()">
+                                Wireframe
+                            </button>
+                            <button 
+                                class="toggle-btn" 
+                                :class="{ active: showPoints }"
+                                @click="showPoints = !showPoints; updateDisplayMode()">
+                                Points
+                            </button>
                         </div>
                     </div>
 

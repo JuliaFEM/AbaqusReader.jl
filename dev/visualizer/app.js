@@ -17,7 +17,9 @@ createApp({
             mesh: null,
             solidMesh: null,
             pointsMesh: null,
-            apiUrl: 'https://abaqusreaderjl-production.up.railway.app',
+            apiUrl: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+                ? 'http://localhost:8080'
+                : 'https://abaqusreaderjl-production.up.railway.app',
             connected: false,
             checking: false,
             infoCollapsed: false,
@@ -33,7 +35,10 @@ createApp({
             showSlowWarning: false,
             slowWarningTimeout: null,
             testFiles: [],  // Available test files
-            selectedTestFile: ''  // Currently selected test file
+            selectedTestFile: '',  // Currently selected test file
+            showSolid: true,  // Show solid mesh
+            showWireframe: false,  // Show wireframe
+            showPoints: false  // Show points
         };
     },
 
@@ -184,13 +189,13 @@ createApp({
             directionalLight.position.set(1, 1, 1);
             this.scene.add(directionalLight);
 
-            // Grid
-            const gridHelper = new THREE.GridHelper(100, 20, 0x888888, 0xdddddd);
-            this.scene.add(gridHelper);
+            // Grid (will be resized when mesh is loaded)
+            this.gridHelper = new THREE.GridHelper(100, 20, 0x888888, 0xdddddd);
+            this.scene.add(this.gridHelper);
 
-            // Axes
-            const axesHelper = new THREE.AxesHelper(20);
-            this.scene.add(axesHelper);
+            // Axes (will be resized when mesh is loaded)
+            this.axesHelper = new THREE.AxesHelper(20);
+            this.scene.add(this.axesHelper);
 
             // Animation loop
             this.animate();
@@ -457,21 +462,35 @@ createApp({
             edgeGeometry.setAttribute('position', geometry.getAttribute('position'));
             edgeGeometry.setIndex(edges);
 
-            // Create solid faces with semi-transparent material
+            // Create solid faces with Julia purple material
             const solidMaterial = new THREE.MeshPhongMaterial({
                 color: 0x9558B2,  // Julia purple
-                opacity: 0.7,
-                transparent: true,
                 side: THREE.DoubleSide,
-                flatShading: true
+                flatShading: true,
+                opacity: 1.0,
+                transparent: false,
+                depthWrite: true
             });
 
             // Create mesh from elements as faces
             const faceIndices = [];
-            elements.forEach(elem => {
-                // Triangulate faces (simple fan triangulation from first vertex)
-                for (let i = 1; i < elem.length - 1; i++) {
-                    faceIndices.push(elem[0], elem[i], elem[i + 1]);
+            elements.forEach((elem, idx) => {
+                const elemType = data.element_types[idx];
+                
+                if (elemType === 'Tri3' && elem.length === 3) {
+                    // Triangle - add directly
+                    faceIndices.push(elem[0], elem[1], elem[2]);
+                } else if (elemType === 'Quad4' && elem.length === 4) {
+                    // Quad - split into two triangles
+                    // Triangle 1: v0, v1, v2
+                    faceIndices.push(elem[0], elem[1], elem[2]);
+                    // Triangle 2: v0, v2, v3
+                    faceIndices.push(elem[0], elem[2], elem[3]);
+                } else {
+                    // Fallback: fan triangulation for polygons
+                    for (let i = 1; i < elem.length - 1; i++) {
+                        faceIndices.push(elem[0], elem[i], elem[i + 1]);
+                    }
                 }
             });
 
@@ -488,7 +507,7 @@ createApp({
             // Create wireframe edges
             const edgeMaterial = new THREE.LineBasicMaterial({
                 color: 0x389826,  // Julia green
-                linewidth: 2
+                linewidth: 4
             });
 
             // Create mesh - wrapped with markRaw
@@ -499,13 +518,16 @@ createApp({
             // Add points for nodes
             const pointsMaterial = new THREE.PointsMaterial({
                 color: 0xCB3C33,  // Julia red
-                size: 3,
+                size: 6,
                 sizeAttenuation: false
             });
             const points = markRaw(new THREE.Points(geometry, pointsMaterial));
             this.pointsMesh = points;
             this.scene.add(points);
             console.log('Added points to scene');
+
+            // Set initial visibility based on display mode
+            this.updateDisplayMode();
 
             // Center and fit camera
             geometry.computeBoundingBox();
@@ -516,6 +538,24 @@ createApp({
             const size = new THREE.Vector3();
             bbox.getSize(size);
             const maxDim = Math.max(size.x, size.y, size.z);
+
+            // Update grid to match model size and position
+            if (this.gridHelper) {
+                this.scene.remove(this.gridHelper);
+            }
+            const gridSize = maxDim * 2; // Make grid 2x the model size
+            const gridDivisions = Math.max(10, Math.floor(gridSize / 10));
+            this.gridHelper = new THREE.GridHelper(gridSize, gridDivisions, 0x888888, 0x444444);
+            this.gridHelper.position.set(center.x, bbox.min.y, center.z);
+            this.scene.add(this.gridHelper);
+
+            // Update axes to match model scale
+            if (this.axesHelper) {
+                this.scene.remove(this.axesHelper);
+            }
+            this.axesHelper = new THREE.AxesHelper(maxDim * 0.5);
+            this.axesHelper.position.copy(center);
+            this.scene.add(this.axesHelper);
 
             this.camera.position.set(
                 center.x + maxDim * 1.5,
@@ -594,6 +634,18 @@ createApp({
 
         showWhyDialog() {
             this.showWhy = true;
+        },
+
+        updateDisplayMode() {
+            if (this.solidMesh) {
+                this.solidMesh.visible = this.showSolid;
+            }
+            if (this.mesh) {
+                this.mesh.visible = this.showWireframe;
+            }
+            if (this.pointsMesh) {
+                this.pointsMesh.visible = this.showPoints;
+            }
         }
     }
 }).mount('#app');
