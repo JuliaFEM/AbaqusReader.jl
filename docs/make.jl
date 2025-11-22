@@ -3,13 +3,25 @@
 
 using Documenter, AbaqusReader
 
-# Copy visualizer to assets so Documenter includes it
-visualizer_src = joinpath(@__DIR__, "src", "visualizer")
-visualizer_assets = joinpath(@__DIR__, "src", "assets", "visualizer")
-if isdir(visualizer_src) && !ispath(visualizer_assets)
-  mkpath(dirname(visualizer_assets))
-  cp(visualizer_src, visualizer_assets; force=true)
-  @info "Copied visualizer to assets for Documenter"
+# Copy visualizer frontend to docs assets so it gets deployed to GitHub Pages
+visualizer_src = joinpath(@__DIR__, "..", "visualizer", "frontend")
+visualizer_dest = joinpath(@__DIR__, "src", "visualizer")
+
+if isdir(visualizer_src)
+  @info "Copying visualizer frontend from $visualizer_src to $visualizer_dest"
+  mkpath(visualizer_dest)
+  
+  # Copy all frontend files
+  for file in readdir(visualizer_src)
+    src_file = joinpath(visualizer_src, file)
+    dest_file = joinpath(visualizer_dest, file)
+    if isfile(src_file)
+      cp(src_file, dest_file; force=true)
+      @info "  Copied $file"
+    end
+  end
+else
+  @warn "Visualizer frontend directory not found at $visualizer_src"
 end
 
 makedocs(modules=[AbaqusReader],
