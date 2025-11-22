@@ -5,7 +5,7 @@ using Documenter, AbaqusReader
 
 # Copy visualizer frontend to docs assets so it gets deployed to GitHub Pages
 visualizer_src = joinpath(@__DIR__, "..", "visualizer", "frontend")
-visualizer_dest = joinpath(@__DIR__, "src", "visualizer")
+visualizer_dest = joinpath(@__DIR__, "src", "assets", "visualizer")
 
 if isdir(visualizer_src)
   @info "Copying visualizer frontend from $visualizer_src to $visualizer_dest"
